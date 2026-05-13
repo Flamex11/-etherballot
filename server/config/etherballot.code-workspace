@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		}
+	],
+	"settings": {
+		"emmet.includeLanguages": {
+			"javascript": "javascriptreact"
+		},
+		"files.associations": {
+			"*.jsx": "javascriptreact",
+			"*.js": "javascript",
+			"*.css": "css"
+		}
+	}
+}
