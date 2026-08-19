@@ -124,12 +124,12 @@ const Results = () => {
             {elections.map((election) => (
               <div
                 key={election._id}
-                className="glass-card animate-fade-in"
+                className="glass-card card-interactive animate-fade-in"
                 onClick={() => loadResults(election)}
                 style={{ cursor: 'pointer' }}
               >
                 <div className="flex justify-between items-center mb-md">
-                  <span className={`badge ${
+                  <span className={`badge shimmer-badge ${
                     election.status === 'completed' ? 'badge--success' :
                     election.status === 'active' ? 'badge--warning' : 'badge--info'
                   }`}>
@@ -168,7 +168,7 @@ const Results = () => {
           )}
 
           {/* On-Chain Vote Hash Verifier Widget */}
-          <div className="glass-card glass-card--no-hover mt-2xl">
+          <div className="glass-card glass-card--no-hover border-gradient-glow mt-2xl" style={{ padding: 'var(--space-xl)' }}>
             <div className="flex items-center gap-sm mb-md">
               <div className="feature-card__icon stat-card__icon--info" style={{ width: 38, height: 38, marginBottom: 0 }}>
                 <HiOutlineSearch size={20} />
@@ -192,7 +192,7 @@ const Results = () => {
                 onChange={e => setVerifyHash(e.target.value)}
                 style={{ flex: 1, minWidth: 280 }}
               />
-              <button className="btn btn-primary" onClick={handleVerify} disabled={verifying}>
+              <button className="btn btn-primary card-interactive" onClick={handleVerify} disabled={verifying}>
                 {verifying ? 'Querying Ledger...' : 'Verify on Ledger'}
               </button>
             </div>
@@ -250,7 +250,7 @@ const Results = () => {
                 </p>
               </div>
               <div className="flex gap-xl">
-                <div className="text-center" style={{ background: '#f8fafc', padding: '12px 24px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-primary)' }}>
+                <div className="text-center border-gradient-glow" style={{ padding: '12px 24px', borderRadius: 'var(--radius-md)' }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 800, color: '#2563eb' }}>
                     {totalVotes}
                   </div>
@@ -262,13 +262,13 @@ const Results = () => {
 
           {/* Winner Banner */}
           {winner && winner.votes > 0 && results?.status === 'completed' && (
-            <div className="glass-card mb-lg animate-scale-in" style={{
+            <div className="glass-card mb-lg animate-scale-in border-gradient-glow" style={{
               background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, #ffffff 100%)',
               borderColor: 'rgba(217, 119, 6, 0.35)',
               textAlign: 'center',
               padding: 'var(--space-2xl)'
             }}>
-              <div className="badge badge--warning mb-sm">
+              <div className="badge badge--warning shimmer-badge mb-sm">
                 <HiOutlineSparkles /> ELECTED CANDIDATE
               </div>
               <h3 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>

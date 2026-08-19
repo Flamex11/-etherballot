@@ -303,8 +303,13 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
           background: #f1f5f9;
           border-radius: var(--radius-lg);
           overflow: hidden;
-          border: 2px solid rgba(37, 99, 235, 0.25);
-          box-shadow: var(--shadow-md);
+          border: 2px solid rgba(37, 99, 235, 0.3);
+          box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08), 0 0 20px rgba(37, 99, 235, 0.1);
+          transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .scanner-frame--detected {
+          border-color: rgba(5, 150, 105, 0.5);
+          box-shadow: 0 12px 35px rgba(15, 23, 42, 0.1), 0 0 25px rgba(5, 150, 105, 0.2);
         }
         .scanner-video {
           width: 100%;
@@ -350,41 +355,44 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
           position: relative;
           width: 65%;
           height: 75%;
-          border: 1px dashed rgba(15, 23, 42, 0.2);
+          border: 1.5px dashed rgba(37, 99, 235, 0.35);
           border-radius: var(--radius-md);
           transition: all var(--transition-normal);
         }
         .cyber-reticle--detected {
-          border-color: rgba(5, 150, 105, 0.6);
-          box-shadow: inset 0 0 20px rgba(5, 150, 105, 0.1);
+          border-color: rgba(5, 150, 105, 0.8);
+          box-shadow: inset 0 0 25px rgba(5, 150, 105, 0.15), 0 0 15px rgba(5, 150, 105, 0.2);
         }
         .reticle-corner {
           position: absolute;
-          width: 18px;
-          height: 18px;
+          width: 22px;
+          height: 22px;
           border-color: #2563eb;
           border-style: solid;
+          filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.5));
+          transition: border-color 0.3s ease;
         }
         .cyber-reticle--detected .reticle-corner {
           border-color: #059669;
+          filter: drop-shadow(0 0 6px rgba(5, 150, 105, 0.6));
         }
-        .reticle-corner--tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; }
-        .reticle-corner--tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; }
-        .reticle-corner--bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; }
-        .reticle-corner--br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; }
+        .reticle-corner--tl { top: -2px; left: -2px; border-width: 3.5px 0 0 3.5px; }
+        .reticle-corner--tr { top: -2px; right: -2px; border-width: 3.5px 3.5px 0 0; }
+        .reticle-corner--bl { bottom: -2px; left: -2px; border-width: 0 0 3.5px 3.5px; }
+        .reticle-corner--br { bottom: -2px; right: -2px; border-width: 0 3.5px 3.5px 0; }
         
         .scanner-laser {
           position: absolute;
           left: 0;
           right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, #2563eb, #0284c7, transparent);
-          box-shadow: 0 0 8px #2563eb;
+          height: 3px;
+          background: linear-gradient(90deg, transparent, #2563eb, #0284c7, #2563eb, transparent);
+          box-shadow: 0 0 12px #0284c7, 0 0 24px rgba(37, 99, 235, 0.6);
           animation: scanBeam 2.5s ease-in-out infinite;
         }
         .cyber-reticle--detected .scanner-laser {
-          background: linear-gradient(90deg, transparent, #059669, #10b981, transparent);
-          box-shadow: 0 0 8px #059669;
+          background: linear-gradient(90deg, transparent, #059669, #10b981, #059669, transparent);
+          box-shadow: 0 0 12px #10b981, 0 0 24px rgba(5, 150, 105, 0.6);
         }
         .scanner-status {
           position: absolute;
@@ -392,20 +400,34 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
           left: 12px;
           right: 12px;
           background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           border: 1px solid var(--border-primary);
           padding: 8px 14px;
-          border-radius: var(--radius-sm);
+          border-radius: var(--radius-md);
           font-size: 0.82rem;
           display: flex;
           align-items: center;
           gap: 8px;
           color: var(--text-primary);
-          box-shadow: var(--shadow-sm);
+          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+          transition: all 0.25s ease;
         }
         .scanner-status--active {
-          border-color: rgba(5, 150, 105, 0.35);
+          border-color: rgba(5, 150, 105, 0.4);
           color: #047857;
+          box-shadow: 0 4px 18px rgba(5, 150, 105, 0.15);
+        }
+        .status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #2563eb;
+          box-shadow: 0 0 8px #2563eb;
+        }
+        .scanner-status--active .status-dot {
+          background: #059669;
+          box-shadow: 0 0 10px #059669;
         }
         .scanner-indicators {
           display: flex;
@@ -416,19 +438,21 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
           display: flex;
           align-items: center;
           gap: 6px;
-          padding: 6px 14px;
+          padding: 7px 16px;
           background: #ffffff;
           border: 1px solid var(--border-primary);
           border-radius: var(--radius-full);
-          font-size: 0.8rem;
+          font-size: 0.82rem;
           color: var(--text-secondary);
           box-shadow: var(--shadow-sm);
-          transition: all var(--transition-fast);
+          transition: all 0.25s ease;
         }
         .indicator-pill--success {
           background: rgba(5, 150, 105, 0.08);
-          border-color: rgba(5, 150, 105, 0.3);
+          border-color: rgba(5, 150, 105, 0.35);
           color: #047857;
+          font-weight: 600;
+          box-shadow: 0 2px 10px rgba(5, 150, 105, 0.15);
         }
         .scanner-controls {
           display: flex;

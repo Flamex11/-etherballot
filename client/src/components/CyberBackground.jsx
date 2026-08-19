@@ -13,47 +13,53 @@ const CyberBackground = () => {
     let height = (canvas.height = window.innerHeight);
 
     // Particle nodes
-    const particleCount = Math.min(Math.floor((width * height) / 20000), 55);
+    const particleCount = Math.min(Math.floor((width * height) / 18000), 65);
     const particles = [];
     const colors = [
-      'rgba(37, 99, 235, ',   // Royal blue
-      'rgba(2, 132, 199, ',   // Sky cyan
-      'rgba(99, 102, 241, ',  // Indigo
-      'rgba(5, 150, 105, '    // Emerald
+      { r: 37, g: 99, b: 235 },   // Royal Blue
+      { r: 2, g: 132, b: 199 },   // Electric Cyan
+      { r: 99, g: 102, b: 241 },  // Neon Indigo
+      { r: 5, g: 150, b: 105 },   // Sovereign Emerald
+      { r: 217, g: 119, b: 6 }    // Saffron Gold
     ];
 
-    // Floating isometric cubes / blocks in background
+    // Floating 3D Geometric Prisms / Wireframe Hexagons
     const blocks = [];
-    const blockCount = 5;
+    const blockCount = Math.max(4, Math.floor(width / 320));
 
     for (let i = 0; i < blockCount; i++) {
+      const color = colors[i % colors.length];
       blocks.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        size: Math.random() * 22 + 14,
-        vx: (Math.random() - 0.5) * 0.2,
-        vy: (Math.random() - 0.5) * 0.2,
+        size: Math.random() * 26 + 16,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
         angle: Math.random() * Math.PI * 2,
-        vRot: (Math.random() - 0.5) * 0.004,
-        color: colors[i % colors.length]
+        vRot: (Math.random() - 0.5) * 0.006,
+        color: `rgba(${color.r}, ${color.g}, ${color.b}, `,
+        depth: Math.random() * 0.4 + 0.6
       });
     }
 
     for (let i = 0; i < particleCount; i++) {
+      const color = colors[Math.floor(Math.random() * colors.length)];
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        radius: Math.random() * 2 + 1.2,
-        vx: (Math.random() - 0.5) * 0.35,
-        vy: (Math.random() - 0.5) * 0.35,
-        baseColor: colors[Math.floor(Math.random() * colors.length)],
-        alpha: Math.random() * 0.4 + 0.25,
-        pulseSpeed: Math.random() * 0.02 + 0.005,
-        pulseVal: Math.random() * Math.PI
+        radius: Math.random() * 2.2 + 1.2,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        colorObj: color,
+        colorStr: `rgba(${color.r}, ${color.g}, ${color.b}, `,
+        alpha: Math.random() * 0.35 + 0.25,
+        pulseSpeed: Math.random() * 0.025 + 0.008,
+        pulseVal: Math.random() * Math.PI * 2
       });
     }
 
-    let mouse = { x: -1000, y: -1000, radius: 130 };
+    let mouse = { x: -1000, y: -1000, radius: 160 };
+    const ripples = [];
 
     const handleMouseMove = (e) => {
       mouse.x = e.clientX;
@@ -65,6 +71,18 @@ const CyberBackground = () => {
       mouse.y = -1000;
     };
 
+    const handleClick = (e) => {
+      if (ripples.length > 5) ripples.shift();
+      ripples.push({
+        x: e.clientX,
+        y: e.clientY,
+        radius: 0,
+        maxRadius: 180,
+        alpha: 0.45,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    };
+
     const handleResize = () => {
       if (!canvas) return;
       width = canvas.width = window.innerWidth;
@@ -73,13 +91,16 @@ const CyberBackground = () => {
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('click', handleClick);
     document.addEventListener('mouseleave', handleMouseLeave);
 
-    // Draw isometric hex / cube (light theme)
-    const drawHexBlock = (x, y, size, angle, colorStr) => {
+    // Draw isometric polygon / cyber prism with glowing depth
+    const drawHexPrism = (x, y, size, angle, colorStr) => {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(angle);
+
+      // Outer Hexagon
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
         const a = (i * Math.PI) / 3;
@@ -89,41 +110,70 @@ const CyberBackground = () => {
         else ctx.lineTo(hx, hy);
       }
       ctx.closePath();
-      ctx.strokeStyle = `${colorStr} 0.2)`;
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = `${colorStr}0.24)`;
+      ctx.lineWidth = 1.3;
       ctx.stroke();
 
-      // Inner wireframe lines
+      // Subtle fill
+      ctx.fillStyle = `${colorStr}0.03)`;
+      ctx.fill();
+
+      // Inner wireframe isometric spokes
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(Math.cos(0) * size, Math.sin(0) * size);
-      ctx.moveTo(0, 0);
-      ctx.lineTo(Math.cos((2 * Math.PI) / 3) * size, Math.sin((2 * Math.PI) / 3) * size);
-      ctx.moveTo(0, 0);
-      ctx.lineTo(Math.cos((4 * Math.PI) / 3) * size, Math.sin((4 * Math.PI) / 3) * size);
-      ctx.strokeStyle = `${colorStr} 0.12)`;
+      for (let i = 0; i < 6; i += 2) {
+        const a = (i * Math.PI) / 3;
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * size, Math.sin(a) * size);
+      }
+      ctx.strokeStyle = `${colorStr}0.15)`;
+      ctx.lineWidth = 1;
       ctx.stroke();
+
+      // Center glowing node
+      ctx.beginPath();
+      ctx.arc(0, 0, 2, 0, Math.PI * 2);
+      ctx.fillStyle = `${colorStr}0.4)`;
+      ctx.fill();
+
       ctx.restore();
     };
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Draw floating geometric blocks
+      // 1. Draw click ripples
+      for (let r = ripples.length - 1; r >= 0; r--) {
+        const ripple = ripples[r];
+        ripple.radius += 3.5;
+        ripple.alpha *= 0.95;
+
+        if (ripple.alpha < 0.01 || ripple.radius > ripple.maxRadius) {
+          ripples.splice(r, 1);
+          continue;
+        }
+
+        ctx.beginPath();
+        ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${ripple.color.r}, ${ripple.color.g}, ${ripple.color.b}, ${ripple.alpha})`;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+      }
+
+      // 2. Draw floating geometric cyber blocks
       blocks.forEach((b) => {
         b.x += b.vx;
         b.y += b.vy;
         b.angle += b.vRot;
 
-        if (b.x < -50) b.x = width + 50;
-        if (b.x > width + 50) b.x = -50;
-        if (b.y < -50) b.y = height + 50;
-        if (b.y > height + 50) b.y = -50;
+        if (b.x < -60) b.x = width + 60;
+        if (b.x > width + 60) b.x = -60;
+        if (b.y < -60) b.y = height + 60;
+        if (b.y > height + 60) b.y = -60;
 
-        drawHexBlock(b.x, b.y, b.size, b.angle, b.color);
+        drawHexPrism(b.x, b.y, b.size, b.angle, b.color);
       });
 
-      // 2. Update & draw constellation nodes
+      // 3. Update & draw constellation nodes
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
 
@@ -136,14 +186,14 @@ const CyberBackground = () => {
         if (p.y < 0) p.y = height;
         if (p.y > height) p.y = 0;
 
-        // Interactive mouse interaction
+        // Interactive mouse interaction (repulsion with elastic return)
         const dxMouse = p.x - mouse.x;
         const dyMouse = p.y - mouse.y;
         const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
         if (distMouse < mouse.radius) {
           const force = (mouse.radius - distMouse) / mouse.radius;
-          p.x += (dxMouse / distMouse) * force * 1.8;
-          p.y += (dyMouse / distMouse) * force * 1.8;
+          p.x += (dxMouse / distMouse) * force * 2.2;
+          p.y += (dyMouse / distMouse) * force * 2.2;
         }
 
         // Draw connections between nearby nodes
@@ -153,23 +203,41 @@ const CyberBackground = () => {
           const dy = p.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 120) {
-            const lineAlpha = (1 - dist / 120) * 0.18;
+          if (dist < 130) {
+            const lineAlpha = (1 - dist / 130) * 0.22;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `${p.baseColor} ${lineAlpha})`;
-            ctx.lineWidth = 0.8;
+            ctx.strokeStyle = `${p.colorStr}${lineAlpha})`;
+            ctx.lineWidth = 0.9;
             ctx.stroke();
           }
         }
 
-        // Draw node
-        const currentAlpha = p.alpha + Math.sin(p.pulseVal) * 0.15;
+        // Draw node with pulsating glow halo
+        const currentAlpha = Math.max(0.12, p.alpha + Math.sin(p.pulseVal) * 0.2);
+        
+        // Outer halo
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius * 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = `${p.colorStr}${currentAlpha * 0.25})`;
+        ctx.fill();
+
+        // Core particle
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.baseColor} ${Math.max(0.1, currentAlpha)})`;
+        ctx.fillStyle = `${p.colorStr}${currentAlpha})`;
         ctx.fill();
+      }
+
+      // 4. Mouse radiant ambient glow when hovering
+      if (mouse.x > 0 && mouse.y > 0) {
+        const radGrad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 140);
+        radGrad.addColorStop(0, 'rgba(37, 99, 235, 0.08)');
+        radGrad.addColorStop(0.5, 'rgba(2, 132, 199, 0.03)');
+        radGrad.addColorStop(1, 'rgba(37, 99, 235, 0)');
+        ctx.fillStyle = radGrad;
+        ctx.fillRect(mouse.x - 140, mouse.y - 140, 280, 280);
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -181,15 +249,19 @@ const CyberBackground = () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('click', handleClick);
       document.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, []);
 
   return (
     <div className="cyber-background-container">
+      <div className="cyber-grid-mesh" />
       <div className="cyber-aurora cyber-aurora--1" />
       <div className="cyber-aurora cyber-aurora--2" />
       <div className="cyber-aurora cyber-aurora--3" />
+      <div className="cyber-aurora cyber-aurora--4" />
+      <div className="cyber-scanbeam" />
       <canvas ref={canvasRef} className="cyber-canvas" />
 
       <style>{`
@@ -201,6 +273,16 @@ const CyberBackground = () => {
           overflow: hidden;
           background: #f8fafc;
         }
+        .cyber-grid-mesh {
+          position: absolute;
+          inset: 0;
+          background-image: 
+            linear-gradient(rgba(37, 99, 235, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37, 99, 235, 0.03) 1px, transparent 1px);
+          background-size: 40px 40px;
+          background-position: center center;
+          opacity: 0.85;
+        }
         .cyber-canvas {
           position: absolute;
           inset: 0;
@@ -210,53 +292,79 @@ const CyberBackground = () => {
         .cyber-aurora {
           position: absolute;
           border-radius: 50%;
-          filter: blur(90px);
-          opacity: 0.16;
+          filter: blur(95px);
+          opacity: 0.18;
           pointer-events: none;
         }
         .cyber-aurora--1 {
-          width: 600px;
-          height: 600px;
-          background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, transparent 70%);
-          top: -10%;
-          left: -5%;
+          width: 650px;
+          height: 650px;
+          background: radial-gradient(circle, rgba(37, 99, 235, 0.35) 0%, rgba(99, 102, 241, 0.15) 50%, transparent 70%);
+          top: -12%;
+          left: -8%;
           animation: auroraDrift1 22s ease-in-out infinite alternate;
         }
         .cyber-aurora--2 {
-          width: 550px;
-          height: 550px;
-          background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
-          bottom: -10%;
-          right: -5%;
+          width: 600px;
+          height: 600px;
+          background: radial-gradient(circle, rgba(99, 102, 241, 0.32) 0%, rgba(2, 132, 199, 0.15) 50%, transparent 70%);
+          bottom: -12%;
+          right: -8%;
           animation: auroraDrift2 26s ease-in-out infinite alternate;
         }
         .cyber-aurora--3 {
-          width: 450px;
-          height: 450px;
-          background: radial-gradient(circle, rgba(2, 132, 199, 0.2) 0%, transparent 70%);
-          top: 40%;
-          left: 45%;
+          width: 500px;
+          height: 500px;
+          background: radial-gradient(circle, rgba(2, 132, 199, 0.28) 0%, rgba(5, 150, 105, 0.15) 50%, transparent 70%);
+          top: 35%;
+          left: 42%;
           animation: auroraDrift3 20s ease-in-out infinite alternate;
+        }
+        .cyber-aurora--4 {
+          width: 420px;
+          height: 420px;
+          background: radial-gradient(circle, rgba(217, 119, 6, 0.18) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%);
+          bottom: 20%;
+          left: 10%;
+          animation: auroraDrift1 28s ease-in-out infinite alternate-reverse;
+        }
+        .cyber-scanbeam {
+          position: absolute;
+          top: -100px;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.35), rgba(2, 132, 199, 0.6), rgba(37, 99, 235, 0.35), transparent);
+          box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+          animation: scanSweep 12s linear infinite;
+          opacity: 0.6;
+        }
+
+        @keyframes scanSweep {
+          0% { top: -10px; opacity: 0; }
+          5% { opacity: 0.8; }
+          95% { opacity: 0.8; }
+          100% { top: 105vh; opacity: 0; }
         }
 
         @keyframes auroraDrift1 {
           0% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(60px, 40px) scale(1.15); }
-          100% { transform: translate(-30px, 70px) scale(0.95); }
+          50% { transform: translate(70px, 50px) scale(1.18); }
+          100% { transform: translate(-40px, 80px) scale(0.95); }
         }
         @keyframes auroraDrift2 {
           0% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(-50px, -40px) scale(1.1); }
-          100% { transform: translate(40px, -60px) scale(0.9); }
+          50% { transform: translate(-60px, -50px) scale(1.12); }
+          100% { transform: translate(50px, -70px) scale(0.92); }
         }
         @keyframes auroraDrift3 {
           0% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(-40px, 50px) scale(1.2); }
-          100% { transform: translate(50px, -30px) scale(0.85); }
+          50% { transform: translate(-50px, 60px) scale(1.22); }
+          100% { transform: translate(60px, -40px) scale(0.88); }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .cyber-aurora {
+          .cyber-aurora, .cyber-scanbeam {
             animation: none !important;
           }
         }

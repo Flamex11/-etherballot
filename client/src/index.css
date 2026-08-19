@@ -603,50 +603,84 @@ input, select, textarea {
   padding: var(--space-xl);
   text-align: center;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.candidate-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.4), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .candidate-card:hover {
-  border-color: rgba(37, 99, 235, 0.4);
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  border-color: rgba(37, 99, 235, 0.5);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08), 0 0 20px rgba(37, 99, 235, 0.12);
+}
+
+.candidate-card:hover::before {
+  opacity: 1;
 }
 
 .candidate-card.selected {
   border-color: var(--accent-primary);
-  background: rgba(37, 99, 235, 0.04);
-  box-shadow: 0 0 25px rgba(37, 99, 235, 0.15), var(--shadow-md);
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.06) 0%, #ffffff 100%);
+  box-shadow: 0 0 0 2px var(--accent-primary), 0 12px 30px rgba(37, 99, 235, 0.2);
+  transform: translateY(-4px) scale(1.02);
+}
+
+.candidate-card.selected::before {
+  height: 4px;
+  background: linear-gradient(90deg, #2563eb, #0284c7, #6366f1);
+  opacity: 1;
 }
 
 .candidate-avatar {
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
   background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   font-weight: 800;
   margin: 0 auto var(--space-md);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.candidate-card:hover .candidate-avatar {
+  transform: scale(1.08) rotate(3deg);
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.4);
+}
+
+.candidate-card.selected .candidate-avatar {
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25), 0 8px 25px rgba(37, 99, 235, 0.4);
 }
 
 .candidate-name {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.28rem;
+  font-weight: 800;
   color: var(--text-primary);
   margin-bottom: var(--space-xs);
 }
 
 .candidate-party {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: var(--accent-primary);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* ═══════════════════════════════════════════
@@ -657,22 +691,24 @@ input, select, textarea {
   text-align: center;
   border-top: 4px solid var(--accent-success);
   background: #ffffff;
+  position: relative;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08), 0 0 35px rgba(5, 150, 105, 0.12);
 }
 
 .vote-success__icon {
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
-  background: rgba(5, 150, 105, 0.1);
-  color: var(--accent-success);
-  border: 2px solid var(--accent-success);
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0 auto var(--space-lg);
-  box-shadow: 0 0 20px rgba(5, 150, 105, 0.2);
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin: 0 auto var(--space-md);
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.35), 0 0 0 6px rgba(5, 150, 105, 0.15);
+  animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .vote-hash {
@@ -1022,7 +1058,7 @@ input, select, textarea {
 }
 
 /* ═══════════════════════════════════════════
-   ANIMATION UTILITIES
+   ANIMATION UTILITIES & ADVANCED VISUAL EFFECTS
    ═══════════════════════════════════════════ */
 
 .animate-fade-in {
@@ -1035,6 +1071,14 @@ input, select, textarea {
 
 .animate-scale-in {
   animation: scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-float {
+  animation: floatLevitate 5s ease-in-out infinite alternate;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlowBox 2.5s ease-in-out infinite alternate;
 }
 
 @keyframes fadeIn {
@@ -1052,6 +1096,160 @@ input, select, textarea {
   to { opacity: 1; transform: scale(1); }
 }
 
+@keyframes floatLevitate {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pulseGlowBox {
+  0% { box-shadow: 0 0 15px rgba(37, 99, 235, 0.12); }
+  100% { box-shadow: 0 0 30px rgba(37, 99, 235, 0.32), 0 0 10px rgba(2, 132, 199, 0.25); }
+}
+
+/* ─── Holographic Shimmer & Glow Effects ─── */
+.shimmer-text {
+  background: linear-gradient(90deg, #1d4ed8 0%, #0284c7 25%, #9333ea 50%, #0284c7 75%, #1d4ed8 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textShimmer 4s linear infinite;
+}
+
+@keyframes textShimmer {
+  to { background-position: 200% center; }
+}
+
+.shimmer-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-badge::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transform: rotate(25deg);
+  animation: badgeShine 3.5s infinite;
+}
+
+@keyframes badgeShine {
+  0% { left: -60%; }
+  30%, 100% { left: 140%; }
+}
+
+/* ─── Animated Gradient Border Card ─── */
+.border-gradient-glow {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  z-index: 1;
+}
+
+.border-gradient-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: calc(var(--radius-lg) + 1.5px);
+  background: linear-gradient(135deg, #2563eb, #0284c7, #6366f1, #059669);
+  background-size: 300% 300%;
+  animation: gradientRotate 6s ease infinite;
+  z-index: -1;
+  opacity: 0.75;
+  transition: opacity var(--transition-normal);
+}
+
+.border-gradient-glow:hover::before {
+  opacity: 1;
+  filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.4));
+}
+
+@keyframes gradientRotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ─── Radar Pulse Biometric Ping ─── */
+.radar-pulse-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radar-pulse-dot {
+  width: 10px;
+  height: 10px;
+  background: #059669;
+  border-radius: 50%;
+  position: relative;
+  z-index: 2;
+}
+
+.radar-pulse-wave {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(5, 150, 105, 0.35);
+  animation: radarWave 2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes radarWave {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+
+/* ─── Enhanced Interactive Card Hover Physics ─── */
+.card-interactive {
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+}
+
+.card-interactive:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08), 0 0 25px rgba(37, 99, 235, 0.15);
+  border-color: rgba(37, 99, 235, 0.4);
+}
+
+/* ─── Biometric Scanner Laser Sweep ─── */
+.biometric-scanner-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 25px rgba(37, 99, 235, 0.15);
+}
+
+.biometric-scanner-laser {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #2563eb, #0284c7, #2563eb, transparent);
+  box-shadow: 0 0 12px #0284c7, 0 0 24px rgba(37, 99, 235, 0.6);
+  animation: laserScan 2.4s ease-in-out infinite alternate;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@keyframes laserScan {
+  0% { top: 4%; opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { top: 94%; opacity: 0.4; }
+}
+
+/* ─── High-Contrast Custom Selection Highlight ─── */
+::selection {
+  background: rgba(37, 99, 235, 0.2);
+  color: #1d4ed8;
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -1061,3 +1259,4 @@ input, select, textarea {
     scroll-behavior: auto !important;
   }
 }
+

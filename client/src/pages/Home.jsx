@@ -166,7 +166,7 @@ const Home = () => {
 
             <h2 className="gov-hero__main-heading">
               Sovereign Digital Electoral Roll & <br />
-              <span className="gov-hero__highlight">Blockchain Voting Infrastructure</span>
+              <span className="gov-hero__highlight shimmer-text">Blockchain Voting Infrastructure</span>
             </h2>
 
             <p className="gov-hero__description">
@@ -177,32 +177,32 @@ const Home = () => {
 
             {/* Quick Hero Actions */}
             <div className="gov-hero__cta-group">
-              <Link to="/register" className="btn btn-primary btn-lg">
+              <Link to="/register" className="btn btn-primary btn-lg card-interactive">
                 📝 Register as New Voter (Form 6)
               </Link>
-              <button onClick={() => openSearch('search')} className="btn btn-secondary btn-lg">
+              <button onClick={() => openSearch('search')} className="btn btn-secondary btn-lg card-interactive">
                 🔍 Search in Electoral Roll / e-EPIC
               </button>
-              <Link to="/login" className="btn btn-ghost btn-lg">
+              <Link to="/login" className="btn btn-ghost btn-lg card-interactive">
                 🔐 Voter Sign In
               </Link>
             </div>
 
             {/* Sovereign Credential Badges */}
             <div className="gov-hero__badges-row">
-              <div className="gov-cred-badge">
+              <div className="gov-cred-badge shimmer-badge">
                 <HiOutlineShieldCheck style={{ color: '#059669' }} />
                 <span>Constitutional Integrity</span>
               </div>
-              <div className="gov-cred-badge">
+              <div className="gov-cred-badge shimmer-badge">
                 <HiOutlineLockClosed style={{ color: '#2563eb' }} />
                 <span>zk-SNARKs Anonymity</span>
               </div>
-              <div className="gov-cred-badge">
+              <div className="gov-cred-badge shimmer-badge">
                 <HiOutlineFingerPrint style={{ color: '#d97706' }} />
                 <span>AI Face Liveness</span>
               </div>
-              <div className="gov-cred-badge">
+              <div className="gov-cred-badge shimmer-badge">
                 <HiOutlineGlobe style={{ color: '#0284c7' }} />
                 <span>24x7 Digital Access</span>
               </div>
@@ -210,13 +210,19 @@ const Home = () => {
           </div>
 
           {/* Right Hero Widget: Quick Search Box (Like ECI Portal) */}
-          <div className="gov-hero__quick-card">
+          <div className="gov-hero__quick-card border-gradient-glow card-interactive">
             <div className="gov-quick-card__header">
               <div className="flex items-center gap-xs">
                 <AnimatedEmblem size={24} />
                 <span className="gov-quick-card__title">Quick Electoral Roll Lookup</span>
               </div>
-              <span className="badge badge--success">LIVE ROLL</span>
+              <span className="badge badge--success shimmer-badge flex items-center gap-xs">
+                <span className="radar-pulse-container" style={{ width: 8, height: 8, marginRight: 2 }}>
+                  <span className="radar-pulse-dot" style={{ width: 6, height: 6 }} />
+                  <span className="radar-pulse-wave" />
+                </span>
+                LIVE ROLL
+              </span>
             </div>
 
             <div className="gov-quick-card__body">
@@ -225,14 +231,14 @@ const Home = () => {
               </p>
 
               <button 
-                className="btn btn-primary btn-block mb-sm"
+                className="btn btn-primary btn-block mb-sm card-interactive"
                 onClick={() => openSearch('search')}
               >
                 <HiOutlineSearch /> Search by EPIC / Aadhaar No.
               </button>
 
               <button 
-                className="btn btn-secondary btn-block mb-md"
+                className="btn btn-secondary btn-block mb-md card-interactive"
                 onClick={() => openSearch('track')}
               >
                 <HiOutlineClipboardList /> Track Form Reference ID

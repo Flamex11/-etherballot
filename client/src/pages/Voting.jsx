@@ -71,10 +71,10 @@ const Voting = () => {
   if (voteReceipt) {
     return (
       <div className="page-container" style={{ maxWidth: 580, margin: '0 auto' }}>
-        <div className="vote-success glass-card glass-card--no-hover animate-scale-in" style={{ marginTop: 'var(--space-2xl)' }}>
+        <div className="vote-success glass-card glass-card--no-hover border-gradient-glow animate-scale-in" style={{ marginTop: 'var(--space-2xl)' }}>
           <div className="vote-success__icon">✓</div>
           
-          <div className="badge badge--success mb-sm">
+          <div className="badge badge--success shimmer-badge mb-sm">
             <HiOutlineShieldCheck /> Confirmed on Blockchain
           </div>
 
@@ -85,14 +85,14 @@ const Voting = () => {
             Your encrypted vote has been validated and permanently written to the smart contract ledger.
           </p>
           
-          <div style={{ textAlign: 'left', marginBottom: 'var(--space-xl)', background: 'rgba(255, 255, 255, 0.02)', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-secondary)' }}>
+          <div style={{ textAlign: 'left', marginBottom: 'var(--space-xl)', background: '#f8fafc', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-secondary)' }}>
             <div className="flex justify-between items-center" style={{ padding: '8px 0', borderBottom: '1px solid var(--border-secondary)' }}>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>Election</span>
-              <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#f8fafc' }}>{voteReceipt.electionName}</span>
+              <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a' }}>{voteReceipt.electionName}</span>
             </div>
             <div className="flex justify-between items-center" style={{ padding: '8px 0', borderBottom: '1px solid var(--border-secondary)' }}>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>Consensus Status</span>
-              <span className="badge badge--success">Confirmed</span>
+              <span className="badge badge--success shimmer-badge">Confirmed</span>
             </div>
             <div className="flex justify-between items-center" style={{ padding: '8px 0' }}>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>Timestamp (UTC)</span>
@@ -109,21 +109,22 @@ const Voting = () => {
               </span>
               <button 
                 onClick={handleCopyHash} 
-                className="btn btn-ghost btn-sm"
-                style={{ padding: '2px 8px', fontSize: '0.75rem' }}
+                className="btn btn-ghost btn-xs"
+                style={{ fontSize: '0.78rem', gap: 4 }}
               >
-                <HiOutlineClipboardCopy size={14} />
-                {copied ? 'Copied!' : 'Copy Hash'}
+                <HiOutlineClipboardCopy /> {copied ? 'Copied!' : 'Copy Hash'}
               </button>
             </div>
-            <div className="vote-hash">{voteReceipt.voteHash}</div>
+            <div className="vote-hash" style={{ wordBreak: 'break-all', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', padding: 12, borderRadius: 8, background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1' }}>
+              {voteReceipt.voteHash}
+            </div>
           </div>
 
           <button 
-            className="btn btn-primary btn-lg btn-block" 
+            className="btn btn-primary btn-block card-interactive" 
             onClick={() => { setVoteReceipt(null); setSelectedElection(null); setSelectedCandidate(null); loadElections(); }}
           >
-            ← Return to Election Directory
+            ← Back to Ballot Center
           </button>
         </div>
       </div>
@@ -159,12 +160,12 @@ const Voting = () => {
           {elections.map((election) => (
             <div
               key={election._id}
-              className={`glass-card ${election.hasVoted ? 'glass-card--no-hover' : ''}`}
+              className={`glass-card card-interactive ${election.hasVoted ? 'glass-card--no-hover' : ''}`}
               onClick={() => !election.hasVoted && setSelectedElection(election)}
               style={{ cursor: election.hasVoted ? 'default' : 'pointer', opacity: election.hasVoted ? 0.75 : 1 }}
             >
               <div className="flex justify-between items-center mb-md">
-                <span className={`badge ${election.status === 'active' ? 'badge--success' : 'badge--info'}`}>
+                <span className={`badge shimmer-badge ${election.status === 'active' ? 'badge--success' : 'badge--info'}`}>
                   ● {election.status}
                 </span>
                 <span className="badge badge--primary">{election.type.toUpperCase()}</span>
@@ -186,7 +187,7 @@ const Voting = () => {
                   <HiOutlineCheckCircle /> You have already cast your ballot
                 </div>
               ) : (
-                <button className="btn btn-secondary btn-sm btn-block mt-md">
+                <button className="btn btn-secondary btn-sm btn-block mt-md card-interactive">
                   Select Ballot →
                 </button>
               )}
@@ -199,16 +200,16 @@ const Voting = () => {
       {selectedElection && (
         <div className="animate-fade-in" style={{ maxWidth: 840, margin: '0 auto' }}>
           <button
-            className="btn btn-ghost mb-lg"
+            className="btn btn-ghost mb-lg card-interactive"
             onClick={() => { setSelectedElection(null); setSelectedCandidate(null); }}
           >
             <HiOutlineArrowLeft /> Back to Ballot Directory
           </button>
           
-          <div className="glass-card glass-card--no-hover mb-xl">
+          <div className="glass-card glass-card--no-hover border-gradient-glow mb-xl">
             <div className="flex justify-between items-center mb-xs">
               <span className="badge badge--primary">{selectedElection.type.toUpperCase()} ELECTION</span>
-              <span className="badge badge--success">● Active Ballot</span>
+              <span className="badge badge--success shimmer-badge">● Active Ballot</span>
             </div>
             <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)', margin: '8px 0 4px' }}>
               {selectedElection.name}
@@ -226,7 +227,7 @@ const Voting = () => {
             {selectedElection.candidates?.map((candidate, idx) => (
               <div
                 key={idx}
-                className={`candidate-card animate-fade-in ${selectedCandidate === idx ? 'selected' : ''}`}
+                className={`candidate-card card-interactive animate-fade-in ${selectedCandidate === idx ? 'selected' : ''}`}
                 onClick={() => setSelectedCandidate(idx)}
               >
                 <div className="candidate-avatar">
@@ -235,7 +236,7 @@ const Voting = () => {
                 <h4 className="candidate-name">{candidate.name}</h4>
                 <p className="candidate-party">{candidate.party}</p>
                 
-                <div className="mt-md" style={{ fontSize: '0.8rem', color: selectedCandidate === idx ? '#fbbf24' : 'var(--text-muted)' }}>
+                <div className="mt-md" style={{ fontSize: '0.8rem', color: selectedCandidate === idx ? '#2563eb' : 'var(--text-muted)', fontWeight: selectedCandidate === idx ? 700 : 500 }}>
                   {selectedCandidate === idx ? '● Selected Choice' : 'Click to select'}
                 </div>
               </div>

@@ -258,11 +258,12 @@ const Navbar = () => {
           left: 0;
           right: 0;
           z-index: 102;
+          box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
         }
 
         /* ─── Sovereign Top Bar ─── */
         .gov-top-bar {
-          background: #1e3a8a; /* Deep Sovereign Blue */
+          background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 50%, #1e3a8a 100%); /* Deep Sovereign Blue */
           color: #ffffff;
           font-size: 0.76rem;
           height: 36px;
@@ -378,15 +379,18 @@ const Navbar = () => {
           right: 0;
           z-index: 100;
           padding: 0 var(--space-md);
-          background: #ffffff;
-          border-bottom: 2px solid #e2e8f0;
-          box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+          background: rgba(255, 255, 255, 0.94);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-bottom: 1.5px solid rgba(226, 232, 240, 0.85);
+          box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
           transition: all var(--transition-normal);
         }
         .navbar--scrolled {
           top: 0;
-          box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
-          border-bottom-color: #1e3a8a;
+          background: rgba(255, 255, 255, 0.97);
+          box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08), 0 0 15px rgba(37, 99, 235, 0.05);
+          border-bottom-color: rgba(30, 58, 138, 0.3);
         }
         .navbar__inner {
           max-width: 1240px;
@@ -402,6 +406,10 @@ const Navbar = () => {
           align-items: center;
           gap: 12px;
           text-decoration: none;
+          transition: transform 0.2s ease;
+        }
+        .navbar__gov-brand:hover {
+          transform: translateY(-1px);
         }
         .navbar__brand-text-container {
           display: flex;
@@ -443,14 +451,15 @@ const Navbar = () => {
           font-size: 0.84rem;
           color: #334155;
           font-weight: 600;
-          transition: all 0.2s;
+          transition: all 0.25s ease;
           cursor: pointer;
         }
         .gov-search-trigger-btn:hover {
           background: #ffffff;
           border-color: #2563eb;
           color: #1d4ed8;
-          box-shadow: 0 2px 10px rgba(37, 99, 235, 0.12);
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18), 0 0 0 2px rgba(37, 99, 235, 0.1);
+          transform: translateY(-1px);
         }
 
         .navbar__links {
@@ -460,15 +469,17 @@ const Navbar = () => {
         }
         .navbar__link {
           padding: 8px 16px;
-          border-radius: var(--radius-sm);
+          border-radius: var(--radius-md);
           font-size: 0.9rem;
           font-weight: 600;
           color: #334155;
           transition: all var(--transition-fast);
+          position: relative;
         }
         .navbar__link:hover {
           color: #1e3a8a;
-          background: #f1f5f9;
+          background: rgba(37, 99, 235, 0.05);
+          transform: translateY(-1px);
         }
         .navbar__link--active {
           color: #1d4ed8;
