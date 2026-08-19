@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { adminAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import AnimatedEmblem from '../components/AnimatedEmblem';
+import { HiOutlineShieldCheck, HiOutlineLockClosed, HiOutlineUser } from 'react-icons/hi';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -26,70 +27,72 @@ const AdminLogin = () => {
       loginAdmin(res.data.token, res.data.admin);
       navigate('/admin');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed');
+      toast.error(err.response?.data?.message || 'Login failed - check your credentials');
     }
     setLoading(false);
   };
 
   return (
     <div className="page-container" style={{ maxWidth: 460, margin: '0 auto' }}>
-      <div style={{ marginTop: 'var(--space-3xl)' }}>
+      <div style={{ marginTop: 'var(--space-2xl)' }}>
         <div className="glass-card glass-card--no-hover animate-scale-in">
           <div className="text-center mb-lg">
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-md)' }}>
-              <AnimatedEmblem size={72} animate={true} />
+              <AnimatedEmblem size={64} animate={true} />
             </div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: 2 }}>
-              <span style={{
-                background: 'linear-gradient(135deg, #eab308, #fbbf24, #f59e0b)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>प्रजातंत्र</span>
+            
+            <div className="badge badge--warning mb-xs">
+              <HiOutlineShieldCheck /> Election Official
+            </div>
+            
+            <h1 className="page-title" style={{ fontSize: '1.8rem', marginBottom: 4 }}>
+              Admin Portal
             </h1>
-            <p style={{ fontSize: '0.72rem', color: 'rgba(234,179,8,0.45)', letterSpacing: '0.2em', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>ADMIN PORTAL</p>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-              Sign in to access the administration dashboard
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+              National, State & District Election Oversight
             </p>
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Username</label>
+              <label className="form-label">
+                <HiOutlineUser style={{ color: '#2563eb' }} /> Administrator Username
+              </label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="Enter admin username"
+                placeholder="e.g. admin_national"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 autoFocus
               />
             </div>
+            
             <div className="form-group">
-              <label className="form-label">Password</label>
+              <label className="form-label">
+                <HiOutlineLockClosed style={{ color: '#2563eb' }} /> Password
+              </label>
               <input
                 type="password"
                 className="form-input"
-                placeholder="Enter password"
+                placeholder="••••••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
             </div>
+            
             <button
               type="submit"
-              className="btn btn-primary btn-lg btn-block"
+              className="btn btn-primary btn-lg btn-block mt-md"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign In →'}
+              {loading ? 'Authenticating Official...' : 'Sign In as Administrator →'}
             </button>
           </form>
 
-          <div className="text-center mt-lg" style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            <p>Contact your system administrator for login credentials.</p>
-          </div>
-
-          <div className="text-center mt-lg">
-            <Link to="/login" style={{ color: 'var(--accent-primary)', fontSize: '0.88rem' }}>
-              ← Back to Voter Login
+          <div className="text-center mt-xl pt-md" style={{ borderTop: '1px solid var(--border-secondary)' }}>
+            <Link to="/login" style={{ color: 'var(--text-muted)', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              ← Return to Voter Sign In
             </Link>
           </div>
         </div>

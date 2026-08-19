@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import FaceCapture from '../components/FaceCapture';
 import toast from 'react-hot-toast';
+import { HiOutlineLockClosed, HiOutlineDeviceMobile, HiOutlineCamera, HiOutlineShieldCheck, HiOutlineSparkles } from 'react-icons/hi';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const Login = () => {
   const [mobile, setMobile] = useState('');
   const [otp, setOtp] = useState('');
   const [otpVerified, setOtpVerified] = useState(false);
+  const [devOtp, setDevOtp] = useState('');
 
   // ═══ STEP 1: Aadhaar Check ═══
   const handleAadhaarSubmit = async () => {
@@ -31,10 +33,10 @@ const Login = () => {
       setUserId(res.data.userId);
       setUserName(res.data.name);
       setMaskedMobile(res.data.mobile);
-      toast.success('Aadhaar verified! Proceed with OTP.');
+      toast.success('Aadhaar matched! Proceed with mobile OTP.');
       setStep(2);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed');
+      toast.error(err.response?.data?.message || 'Login failed - Aadhaar not found');
     }
     setLoading(false);
   };
@@ -48,8 +50,9 @@ const Login = () => {
     setLoading(true);
     try {
       const res = await authAPI.sendOTP(mobile);
-      toast.success('OTP sent!');
+      toast.success('OTP sent to your mobile!');
       if (res.data.otp) {
+        setDevOtp(res.data.otp);
         toast(`Dev OTP: ${res.data.otp}`, { icon: '🔑', duration: 10000 });
       }
     } catch (err) {
@@ -62,7 +65,7 @@ const Login = () => {
     setLoading(true);
     try {
       await authAPI.verifyOTP(mobile, otp);
-      toast.success('OTP verified!');
+      toast.success('Mobile verified! Proceed to facial authentication.');
       setOtpVerified(true);
       setStep(3);
     } catch (err) {
@@ -76,7 +79,7 @@ const Login = () => {
     setLoading(true);
     try {
       const res = await authAPI.verifyFace(userId, descriptor);
-      toast.success('Face verified! Welcome back 🎉');
+      toast.success('Face biometric match verified! Welcome 🎉');
       loginVoter(res.data.token, res.data.user);
       navigate('/vote');
     } catch (err) {
@@ -86,19 +89,26 @@ const Login = () => {
   };
 
   return (
-    <div className="page-container" style={{ maxWidth: 560, margin: '0 auto' }}>
-      <div className="page-header" style={{ marginTop: 'var(--space-2xl)' }}>
-        <h1 className="page-title">Voter Login</h1>
-        <p className="page-subtitle">Aadhaar + OTP + Face Verification</p>
+    <div className="page-container" style={{ maxWidth: 540, margin: '0 auto' }}>
+      <div className="page-header" style={{ marginTop: 'var(--space-xl)' }}>
+        <div className="badge badge--primary mb-sm">Secure Authentication</div>
+        <h1 className="page-title">Voter Sign In</h1>
+        <p className="page-subtitle">3-Factor Identity Verification: Aadhaar • OTP • Biometric Face</p>
       </div>
 
-      {/* Steps */}
+      {/* Stepper Header */}
       <div className="steps">
-        {['Aadhaar', 'OTP', 'Face'].map((label, i) => (
+        {[
+          { label: 'Aadhaar', icon: <HiOutlineLockClosed /> },
+          { label: 'Mobile OTP', icon: <HiOutlineDeviceMobile /> },
+          { label: 'Face AI', icon: <HiOutlineCamera /> }
+        ].map((item, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
             <div className={`step ${step > i + 1 ? 'completed' : ''} ${step === i + 1 ? 'active' : ''}`}>
-              <div className="step__circle">{step > i + 1 ? '✓' : i + 1}</div>
-              <span className="step__label">{label}</span>
+              <div className="step__circle">
+                {step > i + 1 ? '✓' : i + 1}
+              </div>
+              <span className="step__label">{item.label}</span>
             </div>
             {i < 2 && <div className="step__line" />}
           </div>
@@ -107,89 +117,134 @@ const Login = () => {
 
       {/* Step 1: Aadhaar */}
       {step === 1 && (
-        <div className="glass-card glass-card--no-hover animate-fade-in">
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 'var(--space-lg)' }}>
-            🔐 Enter Aadhaar Number
-          </h2>
+        <div className="glass-card glass-card--no-hover animate-scale-in">
+          <div className="flex items-center gap-sm mb-lg">
+            <div className="feature-card__icon stat-card__icon--primary" style={{ width: 42, height: 42, marginBottom: 0 }}>
+              <HiOutlineLockClosed size={22} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                Enter Aadhaar Number
+              </h2>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>12-digit Unique Identification Number</p>
+            </div>
+          </div>
+
           <div className="form-group">
             <label className="form-label">Aadhaar Number</label>
             <input
               type="text"
               className="form-input"
-              placeholder="Enter 12-digit Aadhaar"
+              placeholder="e.g. 123456789012"
               value={aadhaarNumber}
-              onChange={e => setAadhaarNumber(e.target.value)}
+              onChange={e => setAadhaarNumber(e.target.value.replace(/\D/g, ''))}
               maxLength={12}
+              autoFocus
               onKeyDown={e => e.key === 'Enter' && handleAadhaarSubmit()}
             />
           </div>
-          <button className="btn btn-primary btn-lg btn-block" onClick={handleAadhaarSubmit} disabled={loading}>
-            {loading ? 'Verifying...' : 'Continue →'}
+
+          <button 
+            className="btn btn-primary btn-lg btn-block" 
+            onClick={handleAadhaarSubmit} 
+            disabled={loading || aadhaarNumber.length !== 12}
+          >
+            {loading ? 'Verifying on Ledger...' : 'Continue to OTP Verification →'}
           </button>
-          <div className="flex justify-between mt-lg" style={{fontSize: '0.88rem'}}>
-            <Link to="/register" style={{color: 'var(--accent-primary)'}}>New voter? Register</Link>
-            <Link to="/admin/login" style={{color: 'var(--text-muted)'}}>Admin Login →</Link>
+
+          <div className="flex justify-between items-center mt-xl pt-md" style={{ borderTop: '1px solid var(--border-secondary)', fontSize: '0.88rem' }}>
+            <Link to="/register" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>
+              New Voter? Register Now
+            </Link>
+            <Link to="/admin/login" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <HiOutlineShieldCheck /> Admin Portal
+            </Link>
           </div>
         </div>
       )}
 
       {/* Step 2: OTP */}
       {step === 2 && (
-        <div className="glass-card glass-card--no-hover animate-fade-in">
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 'var(--space-sm)' }}>
-            📱 Mobile OTP Verification
-          </h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-lg)', fontSize: '0.88rem' }}>
-            Welcome back, <strong style={{color: 'var(--text-primary)'}}>{userName}</strong>!
-            Registered mobile: <strong>{maskedMobile}</strong>
-          </p>
-          
-          <div className="form-group">
-            <label className="form-label">Mobile Number</label>
-            <div className="flex gap-md">
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Enter your registered mobile"
-                value={mobile}
-                onChange={e => setMobile(e.target.value)}
-                maxLength={10}
-                style={{ flex: 1 }}
-              />
-              <button className="btn btn-secondary" onClick={handleSendOTP} disabled={loading}>
-                Send OTP
-              </button>
+        <div className="glass-card glass-card--no-hover animate-scale-in">
+          <div className="flex items-center gap-sm mb-md">
+            <div className="feature-card__icon stat-card__icon--info" style={{ width: 42, height: 42, marginBottom: 0 }}>
+              <HiOutlineDeviceMobile size={22} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                Mobile OTP Verification
+              </h2>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                Identity matched: <strong style={{ color: '#fbbf24' }}>{userName}</strong>
+              </p>
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Enter OTP</label>
+            <label className="form-label">Registered Mobile Number (Registered: {maskedMobile})</label>
+            <div className="flex gap-sm">
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Enter 10-digit mobile"
+                value={mobile}
+                onChange={e => setMobile(e.target.value.replace(/\D/g, ''))}
+                maxLength={10}
+                style={{ flex: 1 }}
+              />
+              <button className="btn btn-secondary" onClick={handleSendOTP} disabled={loading || mobile.length !== 10}>
+                {loading ? 'Sending...' : 'Send OTP'}
+              </button>
+            </div>
+          </div>
+
+          {devOtp && (
+            <div className="badge badge--warning mb-md animate-fade-in" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', width: '100%' }}>
+              <span>🔑 Test OTP: <strong>{devOtp}</strong></span>
+              <button 
+                onClick={() => setOtp(devOtp)} 
+                style={{ background: 'none', color: '#fbbf24', fontWeight: 700, textDecoration: 'underline' }}
+              >
+                Auto-fill
+              </button>
+            </div>
+          )}
+
+          <div className="form-group">
+            <label className="form-label">Enter 6-Digit OTP</label>
             <input
               type="text"
               className="form-input"
-              placeholder="6-digit OTP"
+              placeholder="e.g. 123456"
               value={otp}
-              onChange={e => setOtp(e.target.value)}
+              onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
               maxLength={6}
               onKeyDown={e => e.key === 'Enter' && handleVerifyOTP()}
             />
           </div>
 
-          <button className="btn btn-primary btn-lg btn-block" onClick={handleVerifyOTP} disabled={loading || otp.length !== 6}>
-            {loading ? 'Verifying...' : 'Verify OTP →'}
+          <button 
+            className="btn btn-primary btn-lg btn-block" 
+            onClick={handleVerifyOTP} 
+            disabled={loading || otp.length !== 6}
+          >
+            {loading ? 'Verifying OTP...' : 'Verify & Proceed to Face Scan →'}
           </button>
         </div>
       )}
 
-      {/* Step 3: Face */}
+      {/* Step 3: Face Verification */}
       {step === 3 && (
-        <div className="glass-card glass-card--no-hover animate-fade-in">
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 'var(--space-sm)', textAlign: 'center' }}>
-            📷 Face Verification
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', textAlign: 'center', marginBottom: 'var(--space-lg)', fontSize: '0.88rem' }}>
-            Look at the camera. We'll match your face with your registered data.
-          </p>
+        <div className="glass-card glass-card--no-hover animate-scale-in">
+          <div className="text-center mb-md">
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
+              Biometric Liveness Verification
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+              Verifying live facial descriptors against stored cryptographic enrollment vector for <strong>{userName}</strong>.
+            </p>
+          </div>
+          
           <FaceCapture
             onCapture={handleFaceVerify}
             onError={msg => toast.error(msg)}

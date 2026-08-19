@@ -2,8 +2,17 @@ import { useState, useEffect } from 'react';
 import { electionAPI, votingAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { 
+  HiOutlineChartBar, 
+  HiOutlineShieldCheck, 
+  HiOutlineSearch, 
+  HiOutlineArrowLeft,
+  HiOutlineSparkles,
+  HiOutlineCheckCircle,
+  HiOutlineXCircle
+} from 'react-icons/hi';
 
-const COLORS = ['#ea580c', '#1e3a8a', '#059669', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6'];
+const COLORS = ['#2563eb', '#0284c7', '#059669', '#d97706', '#7c3aed', '#ec4899', '#4f46e5', '#f97316'];
 
 const Results = () => {
   const [elections, setElections] = useState([]);
@@ -12,6 +21,7 @@ const Results = () => {
   const [loading, setLoading] = useState(true);
   const [verifyHash, setVerifyHash] = useState('');
   const [verifyResult, setVerifyResult] = useState(null);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     loadElections();
@@ -39,17 +49,19 @@ const Results = () => {
 
   const handleVerify = async () => {
     if (!verifyHash.trim()) {
-      toast.error('Please enter a vote hash');
+      toast.error('Please enter a valid vote hash');
       return;
     }
+    setVerifying(true);
     try {
       const res = await votingAPI.verifyVote(verifyHash);
       setVerifyResult(res.data);
-      toast.success('Vote verified!');
+      toast.success('Vote verified on ledger!');
     } catch (err) {
       setVerifyResult({ verified: false });
-      toast.error('Vote not found');
+      toast.error('Vote hash not found on smart contract ledger');
     }
+    setVerifying(false);
   };
 
   // Prepare chart data
@@ -69,13 +81,15 @@ const Results = () => {
       const pct = totalVotes > 0 ? ((data.votes / totalVotes) * 100).toFixed(1) : 0;
       return (
         <div style={{
-          background: 'var(--bg-card)', border: '1px solid var(--border-primary)',
-          borderRadius: 'var(--radius-md)', padding: '12px 16px',
-          boxShadow: 'var(--shadow-lg)'
+          background: '#ffffff',
+          border: '1px solid rgba(37, 99, 235, 0.25)',
+          borderRadius: 'var(--radius-md)',
+          padding: '12px 16px',
+          boxShadow: '0 8px 30px rgba(15, 23, 42, 0.12)',
         }}>
-          <p style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{data.name}</p>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{data.party}</p>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', marginTop: 4 }}>
+          <p style={{ fontWeight: 800, color: '#0f172a', marginBottom: 2 }}>{data.name}</p>
+          <p style={{ fontSize: '0.85rem', color: '#2563eb', fontWeight: 600 }}>{data.party}</p>
+          <p style={{ fontFamily: 'var(--font-mono)', color: '#059669', marginTop: 4, fontSize: '0.9rem', fontWeight: 700 }}>
             {data.votes} votes ({pct}%)
           </p>
         </div>
@@ -88,7 +102,7 @@ const Results = () => {
     return (
       <div className="page-container text-center" style={{ paddingTop: '20vh' }}>
         <div className="spinner" style={{ margin: '0 auto' }} />
-        <p className="loading-text mt-md">Loading results...</p>
+        <p className="loading-text mt-md">Aggregating smart contract election results...</p>
       </div>
     );
   }
@@ -96,15 +110,18 @@ const Results = () => {
   return (
     <div className="page-container">
       <div className="page-header" style={{ marginTop: 'var(--space-xl)' }}>
-        <h1 className="page-title">Election Results</h1>
-        <p className="page-subtitle">View transparent, blockchain-verified voting results</p>
+        <div className="badge badge--primary mb-sm">
+          <HiOutlineChartBar /> Public Audit & Analytics
+        </div>
+        <h1 className="page-title">Election Results & Audits</h1>
+        <p className="page-subtitle">Real-time transparent cryptographic vote tabulations directly from the Ethereum ledger.</p>
       </div>
 
       {!selectedElection ? (
         <>
-          {/* Election List */}
+          {/* Election Directory Cards */}
           <div className="grid grid-2 stagger-children">
-            {elections.map((election, i) => (
+            {elections.map((election) => (
               <div
                 key={election._id}
                 className="glass-card animate-fade-in"
@@ -116,59 +133,100 @@ const Results = () => {
                     election.status === 'completed' ? 'badge--success' :
                     election.status === 'active' ? 'badge--warning' : 'badge--info'
                   }`}>
-                    {election.status}
+                    ● {election.status.toUpperCase()}
                   </span>
-                  <span className="badge badge--primary">{election.type}</span>
+                  <span className="badge badge--primary">{election.type.toUpperCase()}</span>
                 </div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: 'var(--space-sm)' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-xs)' }}>
                   {election.name}
                 </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: 'var(--space-sm)' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: 'var(--space-md)', lineHeight: 1.5 }}>
                   {election.description}
                 </p>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  {election.totalVotesCast || 0} votes cast
-                </p>
+                <div className="flex justify-between items-center pt-md" style={{ borderTop: '1px solid var(--border-secondary)' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.86rem', color: '#2563eb', fontWeight: 600 }}>
+                    {election.totalVotesCast || 0} Total Votes Recorded
+                  </span>
+                  <span style={{ color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: 600 }}>
+                    View Analytics →
+                  </span>
+                </div>
               </div>
             ))}
           </div>
 
           {elections.length === 0 && (
-            <div className="glass-card glass-card--no-hover text-center" style={{ padding: 'var(--space-3xl)' }}>
+            <div className="glass-card glass-card--no-hover text-center" style={{ padding: 'var(--space-3xl)', maxWidth: 600, margin: '0 auto' }}>
               <p style={{ fontSize: '3rem', marginBottom: 'var(--space-md)' }}>📊</p>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: 'var(--space-sm)' }}>
-                No Elections Yet
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-xs)' }}>
+                No Election Data Yet
               </h3>
               <p style={{ color: 'var(--text-secondary)' }}>
-                Results will appear here once elections are created and votes are cast.
+                Certified results will appear here as soon as registered elections are activated and cast on-chain.
               </p>
             </div>
           )}
 
-          {/* Vote Verification */}
-          <div className="glass-card glass-card--no-hover mt-xl">
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 'var(--space-md)' }}>
-              🔍 Verify Your Vote
-            </h3>
-            <div className="flex gap-md">
+          {/* On-Chain Vote Hash Verifier Widget */}
+          <div className="glass-card glass-card--no-hover mt-2xl">
+            <div className="flex items-center gap-sm mb-md">
+              <div className="feature-card__icon stat-card__icon--info" style={{ width: 38, height: 38, marginBottom: 0 }}>
+                <HiOutlineSearch size={20} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Independent On-Chain Vote Verifier
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  Verify that your vote was included without decrypting or exposing your individual candidate choice.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-md flex-wrap">
               <input
                 type="text"
                 className="form-input"
-                placeholder="Enter your vote hash to verify"
+                placeholder="Enter 64-character cryptographic vote transaction hash"
                 value={verifyHash}
                 onChange={e => setVerifyHash(e.target.value)}
-                style={{ flex: 1 }}
+                style={{ flex: 1, minWidth: 280 }}
               />
-              <button className="btn btn-secondary" onClick={handleVerify}>
-                Verify
+              <button className="btn btn-primary" onClick={handleVerify} disabled={verifying}>
+                {verifying ? 'Querying Ledger...' : 'Verify on Ledger'}
               </button>
             </div>
+
             {verifyResult && (
-              <div className={`badge ${verifyResult.verified ? 'badge--success' : 'badge--danger'} mt-md`}
-                style={{ display: 'inline-flex', padding: '10px 20px', fontSize: '0.9rem' }}>
-                {verifyResult.verified
-                  ? `✅ Vote verified! Recorded at ${new Date(verifyResult.timestamp).toLocaleString()}`
-                  : '❌ No matching vote found'}
+              <div className="mt-md animate-fade-in" style={{
+                background: verifyResult.verified ? 'rgba(5, 150, 105, 0.08)' : 'rgba(220, 38, 38, 0.08)',
+                border: `1px solid ${verifyResult.verified ? 'rgba(5, 150, 105, 0.25)' : 'rgba(220, 38, 38, 0.25)'}`,
+                padding: '14px 18px',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12
+              }}>
+                {verifyResult.verified ? (
+                  <>
+                    <HiOutlineCheckCircle size={24} style={{ color: '#059669', flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#047857', fontSize: '0.92rem' }}>
+                        Cryptographic Verification Confirmed
+                      </div>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', fontFamily: 'var(--font-mono)' }}>
+                        Proof inclusion validated at block time: {new Date(verifyResult.timestamp).toLocaleString()}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <HiOutlineXCircle size={24} style={{ color: '#dc2626', flexShrink: 0 }} />
+                    <div style={{ color: '#b91c1c', fontSize: '0.9rem', fontWeight: 600 }}>
+                      No matching cryptographic transaction found for this hash.
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -177,25 +235,26 @@ const Results = () => {
         // Results Detail View
         <div className="animate-fade-in">
           <button className="btn btn-ghost mb-lg" onClick={() => { setSelectedElection(null); setResults(null); }}>
-            ← Back to All Elections
+            <HiOutlineArrowLeft /> Back to Election Overview
           </button>
 
           <div className="glass-card glass-card--no-hover mb-lg">
             <div className="flex justify-between items-center flex-wrap gap-md">
               <div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: 'var(--space-xs)' }}>
+                <span className="badge badge--primary mb-xs">{results?.type?.toUpperCase() || selectedElection.type.toUpperCase()} ELECTION</span>
+                <h2 style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>
                   {results?.name || selectedElection.name}
                 </h2>
-                <p style={{ color: 'var(--text-secondary)' }}>
-                  {results?.status === 'completed' ? '✅ Election Completed' : '🔴 Live Results'}
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                  {results?.status === 'completed' ? '✅ Official Final Tally' : '🔴 Real-Time Ledger Telemetry'}
                 </p>
               </div>
-              <div className="flex gap-lg">
-                <div className="text-center">
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '2rem', fontWeight: 800 }}>
+              <div className="flex gap-xl">
+                <div className="text-center" style={{ background: '#f8fafc', padding: '12px 24px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-primary)' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 800, color: '#2563eb' }}>
                     {totalVotes}
                   </div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>Total Votes</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Total Ballots Cast</div>
                 </div>
               </div>
             </div>
@@ -204,18 +263,20 @@ const Results = () => {
           {/* Winner Banner */}
           {winner && winner.votes > 0 && results?.status === 'completed' && (
             <div className="glass-card mb-lg animate-scale-in" style={{
-              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)',
-              borderColor: 'rgba(16, 185, 129, 0.3)',
+              background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, #ffffff 100%)',
+              borderColor: 'rgba(217, 119, 6, 0.35)',
               textAlign: 'center',
-              padding: 'var(--space-xl)'
+              padding: 'var(--space-2xl)'
             }}>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: 'var(--space-sm)' }}>🏆 WINNER</p>
-              <h3 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: 'var(--space-xs)' }}>
+              <div className="badge badge--warning mb-sm">
+                <HiOutlineSparkles /> ELECTED CANDIDATE
+              </div>
+              <h3 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>
                 {winner.name}
               </h3>
-              <p style={{ color: 'var(--text-secondary)' }}>{winner.party}</p>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '1.3rem', color: 'var(--accent-success)', marginTop: 'var(--space-sm)' }}>
-                {winner.votes} votes ({totalVotes > 0 ? ((winner.votes / totalVotes) * 100).toFixed(1) : 0}%)
+              <p style={{ color: '#b45309', fontSize: '1.05rem', fontWeight: 700 }}>{winner.party}</p>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '1.35rem', color: 'var(--accent-success)', marginTop: 'var(--space-md)', fontWeight: 700 }}>
+                {winner.votes} votes ({totalVotes > 0 ? ((winner.votes / totalVotes) * 100).toFixed(1) : 0}% of total vote)
               </p>
             </div>
           )}
@@ -223,17 +284,17 @@ const Results = () => {
           {/* Chart */}
           {chartData.length > 0 && (
             <div className="glass-card glass-card--no-hover mb-lg">
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 'var(--space-lg)' }}>
-                📊 Vote Distribution
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-lg)' }}>
+                📊 Candidate Vote Distribution
               </h3>
               <div style={{ width: '100%', height: 350 }}>
                 <ResponsiveContainer>
-                  <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 30, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                    <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                    <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <BarChart data={chartData} margin={{ top: 10, right: 20, bottom: 30, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(15, 23, 42, 0.08)" />
+                    <XAxis dataKey="name" tick={{ fill: '#475569', fontSize: 12, fontWeight: 600 }} />
+                    <YAxis tick={{ fill: '#475569', fontSize: 12 }} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="votes" radius={[6, 6, 0, 0]}>
+                    <Bar dataKey="votes" radius={[8, 8, 0, 0]}>
                       {chartData.map((entry, idx) => (
                         <Cell key={idx} fill={entry.color} />
                       ))}
@@ -244,38 +305,49 @@ const Results = () => {
             </div>
           )}
 
-          {/* Result Bars */}
+          {/* Detailed Progress Bars */}
           <div className="glass-card glass-card--no-hover">
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 'var(--space-lg)' }}>
-              Detailed Results
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-lg)' }}>
+              Candidate Breakdown
             </h3>
-            {chartData.map((candidate, idx) => {
-              const pct = totalVotes > 0 ? (candidate.votes / totalVotes) * 100 : 0;
-              return (
-                <div key={idx} className="result-bar">
-                  <div className="result-bar__header">
-                    <div>
-                      <span className="result-bar__name">{candidate.name}</span>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginLeft: 8 }}>
-                        ({candidate.party})
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+              {chartData.map((candidate, idx) => {
+                const pct = totalVotes > 0 ? (candidate.votes / totalVotes) * 100 : 0;
+                return (
+                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span style={{ fontWeight: 700, fontSize: '0.98rem', color: '#0f172a' }}>{candidate.name}</span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', marginLeft: 8 }}>
+                          ({candidate.party})
+                        </span>
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#2563eb', fontWeight: 700 }}>
+                        {candidate.votes} votes ({pct.toFixed(1)}%)
                       </span>
                     </div>
-                    <span className="result-bar__votes">{candidate.votes} votes ({pct.toFixed(1)}%)</span>
+                    <div style={{ width: '100%', height: 10, background: '#e2e8f0', borderRadius: varRadiusFull, overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${pct}%`,
+                          background: candidate.color,
+                          borderRadius: varRadiusFull,
+                          transition: 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="result-bar__track">
-                    <div
-                      className="result-bar__fill"
-                      style={{ width: `${pct}%`, background: candidate.color }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 };
+
+const varRadiusFull = '9999px';
 
 export default Results;

@@ -1,750 +1,717 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HiOutlineShieldCheck, HiOutlineFingerPrint, HiOutlineCube, HiOutlineChartBar, HiOutlineLockClosed, HiOutlineGlobe, HiOutlineUserGroup, HiOutlineLightningBolt, HiOutlineClipboardList, HiOutlineExternalLink } from 'react-icons/hi';
+import { 
+  HiOutlineShieldCheck, 
+  HiOutlineFingerPrint, 
+  HiOutlineCube, 
+  HiOutlineChartBar, 
+  HiOutlineLockClosed, 
+  HiOutlineGlobe, 
+  HiOutlineUserGroup, 
+  HiOutlineClipboardList, 
+  HiOutlineExternalLink,
+  HiOutlineSearch,
+  HiOutlineDocumentText,
+  HiOutlineIdentification,
+  HiOutlineLocationMarker,
+  HiOutlinePhone,
+  HiOutlineSparkles,
+  HiOutlineHeart,
+  HiOutlineDownload
+} from 'react-icons/hi';
 import AnimatedEmblem from '../components/AnimatedEmblem';
+import VoterSearchModal from '../components/VoterSearchModal';
 
 const Home = () => {
-  const features = [
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [modalDefaultTab, setModalDefaultTab] = useState('search');
+
+  const openSearch = (tab = 'search') => {
+    setModalDefaultTab(tab);
+    setSearchModalOpen(true);
+  };
+
+  // ECI Official Forms Directory (Voters' Service Portal Standard)
+  const voterForms = [
     {
-      icon: <HiOutlineCube size={28} />,
-      title: 'Blockchain Security',
-      desc: 'Every vote is stored on the Ethereum blockchain, ensuring immutability and transparency.',
-      color: 'primary'
+      formNo: 'Form 6',
+      title: 'New Voter Registration',
+      titleHi: 'नए मतदाता के रूप में पंजीकरण',
+      desc: 'Application for first-time electors (18+) or shifting from other constituency.',
+      link: '/register',
+      tag: 'Most Popular',
+      color: '#1d4ed8'
     },
     {
-      icon: <HiOutlineFingerPrint size={28} />,
-      title: 'Face Recognition',
-      desc: 'Advanced AI-powered face detection with liveness checks prevents impersonation.',
-      color: 'success'
+      formNo: 'Form 6A',
+      title: 'Overseas Elector Registration',
+      titleHi: 'प्रवासी निर्वाचक के रूप में पंजीकरण',
+      desc: 'Application for Indian citizens residing outside India to enroll in electoral roll.',
+      link: '/register',
+      tag: 'NRI Electors',
+      color: '#0284c7'
     },
     {
-      icon: <HiOutlineShieldCheck size={28} />,
-      title: 'Aadhaar Verified',
-      desc: 'Identity verification through Aadhaar ensures one-person-one-vote integrity.',
-      color: 'info'
+      formNo: 'Form 7',
+      title: 'Objection / Deletion in Roll',
+      titleHi: 'मतदाता सूची में नाम हटाने हेतु आवेदन',
+      desc: 'Objection to proposed inclusion or deletion of existing name from electoral roll.',
+      link: '/register',
+      tag: 'Corrections',
+      color: '#d97706'
     },
     {
-      icon: <HiOutlineLockClosed size={28} />,
-      title: 'End-to-End Encryption',
-      desc: 'SHA-256 hashing and JWT authentication protect all voter data.',
-      color: 'warning'
-    },
-    {
-      icon: <HiOutlineChartBar size={28} />,
-      title: 'Real-Time Results',
-      desc: 'Live vote counting with transparent audit trails for complete accountability.',
-      color: 'primary'
-    },
-    {
-      icon: <HiOutlineUserGroup size={28} />,
-      title: 'Multi-Level Admin',
-      desc: 'Hierarchical admin system — National, State, and District level management.',
-      color: 'success'
+      formNo: 'Form 8',
+      title: 'Correction & Shifting of Residence',
+      titleHi: 'निवास परिवर्तन / प्रविष्टियों में सुधार',
+      desc: 'Correction of particulars (Name, Photo, DOB, Address, Mobile) in electoral record.',
+      link: '/register',
+      tag: 'Updates',
+      color: '#059669'
     }
   ];
 
-  const steps = [
-    { num: '01', title: 'Register', desc: 'Sign up with Aadhaar, mobile OTP, and face capture' },
-    { num: '02', title: 'Verify', desc: 'Complete identity and liveness verification' },
-    { num: '03', title: 'Vote', desc: 'Select your candidate on the secure ballot' },
-    { num: '04', title: 'Confirm', desc: 'Vote recorded immutably on blockchain' }
+  // Citizen Quick Services Grid
+  const quickServices = [
+    {
+      icon: <HiOutlineSearch size={26} />,
+      title: 'Search in Electoral Roll',
+      titleHi: 'मतदाता सूची में नाम खोजें',
+      desc: 'Verify your name, polling station, and serial number in the active roll.',
+      action: () => openSearch('search')
+    },
+    {
+      icon: <HiOutlineDownload size={26} />,
+      title: 'Download Digital e-EPIC',
+      titleHi: 'ई-ईपिक कार्ड डाउनलोड करें',
+      desc: 'Secure cryptographic digital voter identity card with QR signature.',
+      action: () => openSearch('search')
+    },
+    {
+      icon: <HiOutlineClipboardList size={26} />,
+      title: 'Track Application Status',
+      titleHi: 'आवेदन की स्थिति जानें',
+      desc: 'Real-time tracking of Form 6 / 8 submission via Reference ID.',
+      action: () => openSearch('track')
+    },
+    {
+      icon: <HiOutlineLocationMarker size={26} />,
+      title: 'Know Polling Station & BLO',
+      titleHi: 'मतदान केंद्र व बीएलओ की जानकारी',
+      desc: 'Locate designated Booth Level Officer, Electoral Registration Officer & Polling Booth.',
+      action: () => openSearch('search')
+    }
+  ];
+
+  const fourPillars = [
+    {
+      icon: <HiOutlineCube size={28} />,
+      title: 'Blockchain Immutability',
+      desc: 'Ballot tallies and transactions are cryptographically sealed on an Ethereum smart contract ledger.'
+    },
+    {
+      icon: <HiOutlineFingerPrint size={28} />,
+      title: 'AI Face Liveness Verification',
+      desc: 'Neural vision checks 128-D facial embeddings and micro-blinks to prevent synthetic spoofing.'
+    },
+    {
+      icon: <HiOutlineShieldCheck size={28} />,
+      title: 'Aadhaar Identity Integrity',
+      desc: 'Guarantees the Constitutional principle of one-person-one-vote via SHA-256 validation.'
+    },
+    {
+      icon: <HiOutlineLockClosed size={28} />,
+      title: 'End-to-End Zero-Knowledge',
+      desc: 'Voter ballot choices remain mathematically secret and anonymous through zk-SNARKs.'
+    }
   ];
 
   return (
-    <div className="home-page">
-      {/* ═══ OFFICIAL NEWS TICKER ═══ */}
-      <div className="news-ticker">
-        <div className="news-ticker__label">LATEST UPDATES</div>
-        <div className="news-ticker__marquee">
-          <div className="news-ticker__content">
-            <span style={{ margin: '0 20px' }}>🔹 University Project Demonstration.</span>
-            <span style={{ margin: '0 20px' }}>🔹 Simulated environment for blockchain voting.</span>
-            <span style={{ margin: '0 20px' }}>🔹 Not affiliated with any real government entity.</span>
-            <span style={{ margin: '0 20px' }}>🔹 University Project Demonstration.</span>
-            <span style={{ margin: '0 20px' }}>🔹 Simulated environment for blockchain voting.</span>
-            <span style={{ margin: '0 20px' }}>🔹 Not affiliated with any real government entity.</span>
+    <div className="gov-home-page" id="main-content">
+      {/* ═══ OFFICIAL GAZETTE & PRESS MARQUEE ═══ */}
+      <div className="gov-news-ticker">
+        <div className="gov-news-ticker__label">
+          <span>आधिकारिक सूचना / OFFICIAL PRESS NOTE</span>
+        </div>
+        <div className="gov-news-ticker__marquee">
+          <div className="gov-news-ticker__content">
+            <span>📢 Special Summary Revision of Electoral Roll 2026: Qualifying date 01-01-2026. Enroll now using Form 6.</span>
+            <span>🔒 All electors are requested to link their verified mobile number for biometric e-voting enablement.</span>
+            <span>⚡ Decentralized Autonomous Voting Prototype active under academic pilot demonstration.</span>
+            <span>📢 Special Summary Revision of Electoral Roll 2026: Qualifying date 01-01-2026. Enroll now using Form 6.</span>
+            <span>🔒 All electors are requested to link their verified mobile number for biometric e-voting enablement.</span>
           </div>
         </div>
       </div>
 
-      {/* ═══ HERO SECTION ═══ */}
-      <section className="hero">
-        <div className="hero__bg">
-          <div className="hero__orb hero__orb--1" />
-          <div className="hero__orb hero__orb--2" />
-          <div className="hero__orb hero__orb--3" />
-        </div>
-        
-        <div className="page-container hero__content">
-          {/* Government Emblem */}
-          <div className="hero__emblem animate-scale-in">
-            <AnimatedEmblem size={110} animate={true} showText={false} />
+      {/* ═══ SOVEREIGN HERO SECTION ═══ */}
+      <section className="gov-hero">
+        <div className="page-container gov-hero__inner">
+          <div className="gov-hero__content">
+            {/* National Emblem & Title Group */}
+            <div className="flex items-center gap-md mb-md flex-wrap">
+              <AnimatedEmblem size={56} />
+              <div>
+                <div className="gov-hero__sub-title">
+                  भारत सरकार • निर्वाचन आयोग
+                </div>
+                <h1 className="gov-hero__org-title">
+                  ELECTION COMMISSION OF INDIA
+                </h1>
+                <div className="gov-hero__portal-tag">
+                  National Voters’ Service Portal • EtherBallot Decentralized Platform
+                </div>
+              </div>
+            </div>
+
+            <h2 className="gov-hero__main-heading">
+              Sovereign Digital Electoral Roll & <br />
+              <span className="gov-hero__highlight">Blockchain Voting Infrastructure</span>
+            </h2>
+
+            <p className="gov-hero__description">
+              Welcome to the official decentralized voting and electoral services portal. 
+              Empowering every Indian citizen with self-sovereign identity, biometric face liveness authentication, 
+              and immutable smart contract vote tabulation.
+            </p>
+
+            {/* Quick Hero Actions */}
+            <div className="gov-hero__cta-group">
+              <Link to="/register" className="btn btn-primary btn-lg">
+                📝 Register as New Voter (Form 6)
+              </Link>
+              <button onClick={() => openSearch('search')} className="btn btn-secondary btn-lg">
+                🔍 Search in Electoral Roll / e-EPIC
+              </button>
+              <Link to="/login" className="btn btn-ghost btn-lg">
+                🔐 Voter Sign In
+              </Link>
+            </div>
+
+            {/* Sovereign Credential Badges */}
+            <div className="gov-hero__badges-row">
+              <div className="gov-cred-badge">
+                <HiOutlineShieldCheck style={{ color: '#059669' }} />
+                <span>Constitutional Integrity</span>
+              </div>
+              <div className="gov-cred-badge">
+                <HiOutlineLockClosed style={{ color: '#2563eb' }} />
+                <span>zk-SNARKs Anonymity</span>
+              </div>
+              <div className="gov-cred-badge">
+                <HiOutlineFingerPrint style={{ color: '#d97706' }} />
+                <span>AI Face Liveness</span>
+              </div>
+              <div className="gov-cred-badge">
+                <HiOutlineGlobe style={{ color: '#0284c7' }} />
+                <span>24x7 Digital Access</span>
+              </div>
+            </div>
           </div>
 
-          <div className="hero__brand animate-slide-up" style={{animationDelay: '0.15s'}}>
-            <h1 className="hero__brand-hindi" style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: '4.5rem', letterSpacing: '-0.02em', dropShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>Prajaatantr</h1>
-            <p className="hero__brand-english" style={{ fontSize: '0.9rem', color: 'var(--accent-primary)', fontWeight: 700 }}>DECENTRALIZED AUTONOMOUS VOTING</p>
-            <p className="hero__brand-slogan" style={{ color: 'var(--text-muted)' }}>An Academic Project Demonstration</p>
-          </div>
+          {/* Right Hero Widget: Quick Search Box (Like ECI Portal) */}
+          <div className="gov-hero__quick-card">
+            <div className="gov-quick-card__header">
+              <div className="flex items-center gap-xs">
+                <AnimatedEmblem size={24} />
+                <span className="gov-quick-card__title">Quick Electoral Roll Lookup</span>
+              </div>
+              <span className="badge badge--success">LIVE ROLL</span>
+            </div>
 
-          <div className="hero__badge animate-fade-in" style={{animationDelay: '0.25s'}}>
-            <HiOutlineLightningBolt />
-            Blockchain-Secured Digital Voting Platform • Academic Project
-          </div>
+            <div className="gov-quick-card__body">
+              <p style={{ fontSize: '0.84rem', color: '#475569', marginBottom: 'var(--space-md)' }}>
+                Instant verification of citizen enrollment status, polling station location, and e-EPIC generation.
+              </p>
 
-          <h2 className="hero__title animate-slide-up" style={{animationDelay: '0.3s'}}>
-            Secure your
-            <span className="hero__title-gradient"> Voting</span>
-          </h2>
-          <p className="hero__subtitle animate-slide-up" style={{animationDelay: '0.35s'}}>
-            Prajaatantr combines blockchain immutability, AI-powered face recognition,
-            and Aadhaar verification to deliver India's most secure digital voting experience.
-          </p>
-          <div className="hero__actions animate-slide-up" style={{animationDelay: '0.4s'}}>
-            <Link to="/register" className="btn btn-primary btn-lg">
-              🗳️ Register to Vote
-            </Link>
-            <Link to="/login" className="btn btn-secondary btn-lg">
-              Sign In
-            </Link>
-          </div>
+              <button 
+                className="btn btn-primary btn-block mb-sm"
+                onClick={() => openSearch('search')}
+              >
+                <HiOutlineSearch /> Search by EPIC / Aadhaar No.
+              </button>
 
-          {/* New Live Feed Widget (Desktop Only) */}
-          <div className="hero__live-feed hide-mobile animate-slide-up" style={{ animationDelay: '0.6s' }}>
-            <div className="feed-header">
-              <span className="live-dot"></span> LIVE NETWORK
-            </div>
-            <div className="feed-items">
-              <div className="feed-item" style={{ animationDelay: '0s' }}><span className="feed-timestamp">14s ago</span> <br/>Tx 0x8f4...2A9 confirmed in Block #153421</div>
-              <div className="feed-item" style={{ animationDelay: '2s' }}><span className="feed-timestamp">42s ago</span> <br/>Zero-Knowledge Proof verified securely</div>
-              <div className="feed-item" style={{ animationDelay: '4s' }}><span className="feed-timestamp">1m ago</span>  <br/>New peering node connected from Mumbai</div>
-              <div className="feed-item" style={{ animationDelay: '6s' }}><span className="feed-timestamp">3m ago</span>  <br/>Smart Contract state synchronized</div>
-            </div>
-          </div>
-          
-          
-          <div className="hero__stats animate-fade-in" style={{animationDelay: '0.55s'}}>
-            <div className="hero__stat">
-              <span className="hero__stat-value">256-bit</span>
-              <span className="hero__stat-label">Encryption</span>
-            </div>
-            <div className="hero__stat-divider" />
-            <div className="hero__stat">
-              <span className="hero__stat-value">128-D</span>
-              <span className="hero__stat-label">Face Vectors</span>
-            </div>
-            <div className="hero__stat-divider" />
-            <div className="hero__stat">
-              <span className="hero__stat-value">29</span>
-              <span className="hero__stat-label">States Supported</span>
-            </div>
-            <div className="hero__stat-divider" />
-            <div className="hero__stat">
-              <span className="hero__stat-value">100%</span>
-              <span className="hero__stat-label">Transparent</span>
+              <button 
+                className="btn btn-secondary btn-block mb-md"
+                onClick={() => openSearch('track')}
+              >
+                <HiOutlineClipboardList /> Track Form Reference ID
+              </button>
+
+              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 10, fontSize: '0.78rem', color: '#64748b' }}>
+                💡 Need assistance? Call National Voter Helpline <strong>1950</strong> (Toll-Free).
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ═══ ZERO-KNOWLEDGE PRIVACY ═══ */}
-      <section className="section" style={{ background: '#0f172a', borderBottom: '1px solid #1e293b', padding: 'var(--space-2xl) 0' }}>
+      {/* ═══ VOTER SERVICES DIRECTORY (ECI SINGLE WINDOW) ═══ */}
+      <section className="section" style={{ background: '#ffffff', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
         <div className="page-container">
-          <div className="section__header" style={{ textAlign: 'left', borderBottom: '1px solid #1e293b', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <HiOutlineLockClosed color="#10b981" size={32} />
-              Zero-Knowledge Architecture & Privacy
+          <div className="section__header" style={{ textAlign: 'left', marginBottom: 'var(--space-xl)' }}>
+            <div className="badge badge--primary mb-xs">
+              <HiOutlineIdentification /> Voter Services Directory
+            </div>
+            <h2 className="section__title" style={{ fontSize: '1.85rem' }}>
+              National Voter Portal Services (मतदाता सेवा पोर्टल)
             </h2>
-            <p style={{ color: '#94a3b8', fontSize: '1rem', marginTop: '8px' }}>
-              We employ cryptographic zero-knowledge proofs (zk-SNARKs) to mathematically prove your voting eligibility without ever revealing your identity or your vote.
+            <p className="section__subtitle" style={{ margin: 0 }}>
+              Single window access for electoral registration, modifications, digital e-EPIC, and grievance redressal.
             </p>
           </div>
 
-          <div className="grid grid-3">
-            {[
-              {
-                title: 'Data Anonymization',
-                desc: 'Your Aadhaar and facial biometrics are hashed locally on your device. Only irreversible cryptographic proofs are sent to our servers.',
-                badge: 'Privacy Protocol'
-              },
-              {
-                title: 'Homomorphic Encryption',
-                desc: 'Votes are encrypted and tallied. The final count can be verified without ever decrypting individual voter choices, ensuring absolute ballot secrecy.',
-                badge: 'Cryptography'
-              },
-              {
-                title: 'Decentralized Identity',
-                desc: 'Your identity is self-sovereign. The smart contract validates your right to vote independently from any central government server or database limit.',
-                badge: 'Web3 Core'
-              }
-            ].map((feature, idx) => (
-              <div key={idx} style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderTop: '3px solid #10b981',
-                padding: 'var(--space-lg)',
-                borderRadius: '8px',
-                transition: 'all 0.3s'
-              }}>
-                <span style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, marginBottom: '12px', display: 'inline-block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {feature.badge}
-                </span>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc', marginBottom: '12px', lineHeight: 1.4 }}>
-                  {feature.title}
-                </h3>
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6, flex: 1 }}>
-                  {feature.desc}
-                </p>
+          {/* 4 Quick Action Cards */}
+          <div className="grid grid-4 mb-2xl">
+            {quickServices.map((qs, i) => (
+              <div 
+                key={i} 
+                className="glass-card gov-service-card"
+                onClick={qs.action}
+              >
+                <div className="gov-service-card__icon">
+                  {qs.icon}
+                </div>
+                <h3 className="gov-service-card__title">{qs.title}</h3>
+                <div className="gov-service-card__title-hi">{qs.titleHi}</div>
+                <p className="gov-service-card__desc">{qs.desc}</p>
+                <span className="gov-service-card__link">Access Service →</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Forms 6, 6A, 7, 8 Directory Grid */}
+          <div className="section__header" style={{ textAlign: 'left', marginBottom: 'var(--space-md)' }}>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>
+              Electoral Registration Forms (मतदाता पंजीकरण प्रपत्र)
+            </h3>
+          </div>
+
+          <div className="grid grid-4">
+            {voterForms.map((f, i) => (
+              <div key={i} className="glass-card gov-form-card">
+                <div className="flex justify-between items-center mb-xs">
+                  <span className="gov-form-card__num" style={{ color: f.color }}>{f.formNo}</span>
+                  <span className="badge badge--primary" style={{ fontSize: '0.68rem' }}>{f.tag}</span>
+                </div>
+                <h4 className="gov-form-card__title">{f.title}</h4>
+                <div className="gov-form-card__title-hi">{f.titleHi}</div>
+                <p className="gov-form-card__desc">{f.desc}</p>
+                <Link to={f.link} className="btn btn-secondary btn-sm btn-block mt-md">
+                  Fill {f.formNo} Online →
+                </Link>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══ NATIONAL WELFARE & BENEFITS INTEGRATION ═══ */}
-      <section className="section" style={{ background: '#f1f5f9', borderBottom: '1px solid #e2e8f0', padding: 'var(--space-2xl) 0' }}>
+      {/* ═══ SVEEP & ETHICAL VOTING PLEDGE (GOV HIGHLIGHT) ═══ */}
+      <section className="section" style={{ background: '#f8fafc' }}>
         <div className="page-container">
-          <div className="section__header" style={{ textAlign: 'left', borderBottom: '2px solid #0f172a', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <HiOutlineClipboardList color="#3b82f6" size={32} />
-              Verified Open Data & Welfare Schemes
+          <div className="gov-sveep-banner glass-card glass-card--no-hover">
+            <div className="gov-sveep-banner__content">
+              <div className="badge badge--warning mb-sm">
+                <HiOutlineHeart /> SVEEP Initiative • मतदानाचा हक्क
+              </div>
+              <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', marginBottom: 'var(--space-xs)' }}>
+                "No Voter to be Left Behind" • कोई भी मतदाता न छूटे
+              </h2>
+              <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.6, maxWidth: 720 }}>
+                Systematic Voters’ Education and Electoral Participation (SVEEP) is the flagship program of the Election Commission of India for voter education, spreading voter awareness, and promoting voter literacy across the nation.
+              </p>
+              <div className="flex gap-md mt-lg flex-wrap">
+                <Link to="/vote" className="btn btn-primary">
+                  🗳️ Participate in Active Ballot
+                </Link>
+                <Link to="/results" className="btn btn-secondary">
+                  📊 View Verified Election Audits
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ CRYPTOGRAPHIC ARCHITECTURE ═══ */}
+      <section className="section" style={{ background: '#ffffff', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
+        <div className="page-container">
+          <div className="section__header">
+            <div className="badge badge--primary mb-xs">Technology & Sovereign Trust</div>
+            <h2 className="section__title">Decentralized Autonomous Architecture</h2>
+            <p className="section__subtitle">
+              Engineered with zero-trust cryptographic verification, biometric machine learning, and transparent audit trails.
+            </p>
+          </div>
+
+          <div className="grid grid-4">
+            {fourPillars.map((p, i) => (
+              <div key={i} className="feature-card glass-card">
+                <div className="feature-card__icon stat-card__icon--primary">
+                  {p.icon}
+                </div>
+                <h3 className="feature-card__title">{p.title}</h3>
+                <p className="feature-card__desc">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ VERIFIED CITIZEN SERVICES & WELFARE DIRECTORY ═══ */}
+      <section className="section" style={{ background: '#f8fafc' }}>
+        <div className="page-container">
+          <div className="section__header" style={{ textAlign: 'left', marginBottom: 'var(--space-xl)' }}>
+            <div className="badge badge--info mb-xs">
+              <HiOutlineGlobe /> Sovereign Portal Interoperability
+            </div>
+            <h2 className="section__title" style={{ fontSize: '1.85rem' }}>
+              Citizen Welfare & Public Data Directory
             </h2>
-            <p style={{ color: '#475569', fontSize: '1rem', marginTop: '8px' }}>
-              We instantly match your decentralized identity against integrated <strong>india.gov.in</strong> endpoints to check eligibility for National Social Development Benefits.
+            <p className="section__subtitle" style={{ margin: 0 }}>
+              Direct access to open government portals, citizen registries, and public welfare schemes.
             </p>
           </div>
 
           <div className="grid grid-3">
             {[
               {
-                title: 'Apply for Postal Life Insurance by India Post',
-                desc: 'The India Post portal allows citizens to apply online for Postal Life Insurance (PLI) services. Offering affordable insurance plans designed to provide financial security.',
+                title: 'National Portal of India (india.gov.in)',
+                desc: 'Single-entry window to all information and services provided by the Indian Government.',
+                ministry: 'National Informatics Centre',
+                url: 'https://www.india.gov.in'
+              },
+              {
+                title: 'Digital India Mission (digitalindia.gov.in)',
+                desc: 'Flagship programme to transform India into a digitally empowered society and knowledge economy.',
+                ministry: 'Ministry of Electronics & IT',
+                url: 'https://digitalindia.gov.in'
+              },
+              {
+                title: 'Unique Identification Authority (UIDAI)',
+                desc: 'Aadhaar identity verification and secure authentication infrastructure for residents.',
+                ministry: 'Government of India',
+                url: 'https://uidai.gov.in'
+              },
+              {
+                title: 'Postal Life Insurance by India Post',
+                desc: 'Online application access for citizen life insurance and financial security plans.',
                 ministry: 'Ministry of Communications',
                 url: 'https://www.india.gov.in/services/details/apply-for-postal-life-insurance-by-india-post'
               },
               {
-                title: 'Apply for Dependent Children Pension Scheme',
-                desc: 'Supports children under 21 years whose parents are deceased, missing, or incapacitated. With an annual family income cap of ₹60,000.',
-                ministry: 'Punjab Government',
-                url: 'https://www.india.gov.in/services/details/apply-for-dependent-children-pension-scheme-punjab'
-              },
-              {
-                title: 'Subsidy Scheme for Widows and Destitute Women',
-                desc: 'The government provides financial aid to widows and destitute women for their daughters marriage. Applicants must submit relevant documents, including income proof.',
-                ministry: 'Uttar Pradesh',
-                url: 'https://www.india.gov.in/services/details/apply-for-subsidy-scheme-for-widows-and-destitute-women-daughter-marriage-uttar-pradesh'
-              },
-              {
-                title: 'Apply for National Family Benefit Scheme',
-                desc: 'This scheme offers immediate financial aid to families of deceased breadwinners. Assistance is provided automatically after verifying the family eligibility on-chain.',
-                ministry: 'Jammu and Kashmir (UT)',
-                url: 'https://www.india.gov.in/services/details/apply-for-national-family-benefit-scheme-jammu-and-kashmir'
-              },
-              {
                 title: 'National Social Assistance Programme (NSAP)',
-                desc: 'Access the most recent open data abstracts concerning thousands of beneficiaries nationwide for demographic distribution planning.',
-                ministry: 'National Open Data',
+                desc: 'Open datasets regarding verified national beneficiary allocations and welfare disbursements.',
+                ministry: 'Ministry of Rural Development',
                 url: 'https://data.gov.in/catalog/national-social-assistance-programmensap-beneficiaries-abstract'
               },
               {
-                title: 'Scholarship Data for Municipal Corporations',
-                desc: 'Integration with municipal scholarship portals to easily apply for local educational grants without filling out additional identity forms.',
-                ministry: 'Navi Mumbai Corporation',
-                url: 'https://data.gov.in/catalog/scholarship-data-navi-mumbai-municipal-corporation'
+                title: 'National Open Data Portal (data.gov.in)',
+                desc: 'Platform for supporting open data initiative of Government of India.',
+                ministry: 'NIC / MeitY',
+                url: 'https://data.gov.in'
               }
             ].map((service, idx) => (
-              <div key={idx} className="gov-service-card" style={{
-                background: '#ffffff',
-                border: '1px solid #cbd5e1',
-                borderTop: '4px solid #3b82f6',
-                padding: 'var(--space-lg)',
-                borderRadius: '6px',
-                transition: 'all 0.2s',
-                boxShadow: '0 4px 6px rgba(15,23,42,0.05)',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column'
-              }}
-              onMouseOver={e => e.currentTarget.style.transform = 'translateY(-3px)'}
-              onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
-              onClick={() => window.open(service.url, '_blank')}
+              <div 
+                key={idx} 
+                className="glass-card gov-external-card"
+                onClick={() => window.open(service.url, '_blank')}
               >
-                <span style={{ color: '#3b82f6', fontSize: '0.75rem', fontWeight: 800, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div className="gov-external-card__ministry">
                   {service.ministry}
-                </span>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px', lineHeight: 1.4 }}>
+                </div>
+                <h3 className="gov-external-card__title">
                   {service.title}
                 </h3>
-                <p style={{ color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, flex: 1, marginBottom: '16px' }}>
+                <p className="gov-external-card__desc">
                   {service.desc}
                 </p>
-                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <span style={{ color: '#0f172a', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    Verify Eligibility <HiOutlineExternalLink color="#3b82f6" />
-                  </span>
+                <div className="gov-external-card__link">
+                  <span>Visit Official Portal</span>
+                  <HiOutlineExternalLink size={15} />
                 </div>
               </div>
             ))}
           </div>
-          
-          <div style={{ marginTop: 'var(--space-2xl)', display: 'flex', justifyContent: 'center' }}>
-             <button className="btn btn-secondary" style={{ borderColor: '#3b82f6', color: '#3b82f6' }} onClick={() => window.open('https://www.india.gov.in/category/benefits-social-development', '_blank')}>
-               Load Additional Schemes
-             </button>
-          </div>
-        </div>
-      </section>      {/* ═══ FEATURES ═══ */}
-      <section className="section">
-        <div className="page-container">
-          <div className="section__header">
-            <h2 className="section__title">Why Prajaatantr?</h2>
-            <p className="section__subtitle">
-              Built with cutting-edge technology to ensure every vote counts
-            </p>
-          </div>
-          <div className="grid grid-3 stagger-children">
-            {features.map((f, i) => (
-              <div key={i} className="feature-card glass-card animate-fade-in">
-                <div className={`feature-card__icon stat-card__icon--${f.color}`}>
-                  {f.icon}
-                </div>
-                <h3 className="feature-card__title">{f.title}</h3>
-                <p className="feature-card__desc">{f.desc}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* ═══ HOW IT WORKS ═══ */}
-      <section className="section section--dark">
-        <div className="page-container">
-          <div className="section__header">
-            <h2 className="section__title">How It Works</h2>
-            <p className="section__subtitle">Four simple steps to cast your secure vote</p>
-          </div>
-          <div className="timeline">
-            {steps.map((s, i) => (
-              <div key={i} className="timeline__item animate-slide-up" style={{animationDelay: `${i * 0.1}s`}}>
-                <div className="timeline__number">{s.num}</div>
-                <h3 className="timeline__title">{s.title}</h3>
-                <p className="timeline__desc">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-
-
-
-        </div>
-      </section>
-
-      {/* ═══ CTA ═══ */}
-      <section className="section">
-        <div className="page-container text-center">
-          <div className="cta-card glass-card glass-card--no-hover">
-            <h2 className="cta-card__title">Ready to Cast Your Vote?</h2>
-            <p className="cta-card__subtitle">
-              Join the blockchain voting revolution. Register now and experience
-              the future of democratic participation.
-            </p>
-            <div className="flex gap-md justify-center mt-xl">
-              <Link to="/register" className="btn btn-primary btn-lg">
-                Get Started →
-              </Link>
-              <Link to="/admin/login" className="btn btn-ghost btn-lg">
-                Admin Access
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Modal */}
+      <VoterSearchModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        defaultTab={modalDefaultTab}
+      />
 
       <style>{`
-        /* ─── Hero ─── */
-        .hero {
-          position: relative;
-          min-height: 92vh;
+        /* ─── Gazette Ticker ─── */
+        .gov-news-ticker {
+          background: #ffffff;
+          border-bottom: 1px solid #e2e8f0;
           display: flex;
           align-items: center;
+          height: 38px;
           overflow: hidden;
+          font-size: 0.8rem;
+          box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
         }
-        .hero__bg {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-        }
-        .hero__orb {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-          opacity: 0.4;
-        }
-        .hero__orb--1 {
-          width: 500px;
-          height: 500px;
-          background: radial-gradient(circle, rgba(234, 179, 8, 0.15), rgba(99, 102, 241, 0.2), transparent);
-          top: -10%;
-          left: -5%;
-          animation: float 8s ease-in-out infinite;
-        }
-        .hero__orb--2 {
-          width: 400px;
-          height: 400px;
-          background: radial-gradient(circle, rgba(139, 92, 246, 0.25), transparent);
-          bottom: -5%;
-          right: -5%;
-          animation: float 10s ease-in-out infinite reverse;
-        }
-        .hero__orb--3 {
-          width: 300px;
-          height: 300px;
-          background: radial-gradient(circle, rgba(6, 182, 212, 0.2), transparent);
-          top: 40%;
-          right: 20%;
-          animation: float 12s ease-in-out infinite;
-        }
-        .hero__content {
-          position: relative;
-          z-index: 1;
-          text-align: center;
-          padding-top: 20px;
-        }
-        .hero__emblem {
-          margin-bottom: var(--space-lg);
-          display: flex;
-          justify-content: center;
-        }
-        .hero__brand {
-          margin-bottom: var(--space-xl);
-        }
-        .hero__brand-hindi {
-          font-size: 3.8rem;
-          font-weight: 900;
-          background: linear-gradient(135deg, #eab308 0%, #fbbf24 25%, #f59e0b 50%, #d97706 75%, #eab308 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          background-size: 200% 100%;
-          letter-spacing: 0.04em;
-          line-height: 1.2;
-          margin-bottom: 4px;
-          text-shadow: none;
-          filter: drop-shadow(0 2px 8px rgba(234, 179, 8, 0.15));
-        }
-        .hero__brand-english {
-          font-size: 1rem;
-          color: rgba(30, 58, 138, 0.45); /* Navy transparent */
-          letter-spacing: 0.4em;
-          font-weight: 600;
-          margin-bottom: 8px;
-        }
-        .hero__brand-slogan {
-          font-size: 0.92rem;
-          color: var(--accent-secondary); /* Saffron */
-          font-style: italic;
-          font-weight: 500;
+        .gov-news-ticker__label {
+          background: #1e3a8a;
+          color: #ffffff;
+          font-weight: 800;
+          font-size: 0.72rem;
           letter-spacing: 0.05em;
-        }
-        
-        /* News Ticker */
-        .news-ticker {
-          background: #db2777; /* Subtle rose/red for urgent updates like NIC portal */
-          color: white;
-          font-size: 0.85rem;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          height: 32px;
-          overflow: hidden;
-          width: 100%;
-        }
-        .news-ticker__label {
-          background: #be185d;
           padding: 0 16px;
           height: 100%;
           display: flex;
           align-items: center;
-          font-size: 0.75rem;
-          letter-spacing: 0.05em;
           white-space: nowrap;
           z-index: 2;
         }
-        .news-ticker__marquee {
-          flex: 1;
+        .gov-news-ticker__marquee {
           overflow: hidden;
-          position: relative;
           white-space: nowrap;
+          width: 100%;
         }
-        .news-ticker__content {
-          display: inline-block;
-          animation: marqueeScroll 25s linear infinite;
+        .gov-news-ticker__content {
+          display: inline-flex;
+          gap: 36px;
+          animation: marquee 35s linear infinite;
+          color: #334155;
         }
-        .news-ticker:hover .news-ticker__content {
-          animation-play-state: paused;
-        }
-        @keyframes marqueeScroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .hero__live-feed {
-          position: absolute;
-          right: 2%;
-          top: 25%;
-          background: rgba(15, 23, 42, 0.85);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: var(--radius-lg);
-          padding: var(--space-lg);
-          width: 300px;
-          text-align: left;
-          box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-          color: white;
-          z-index: 10;
-        }
-        .feed-header {
-          font-size: 0.75rem;
-          font-weight: 800;
-          letter-spacing: 0.15em;
-          color: rgba(255, 255, 255, 0.7);
-          margin-bottom: var(--space-md);
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .live-dot {
-          width: 8px;
-          height: 8px;
-          background: var(--accent-success);
-          border-radius: 50%;
-          box-shadow: 0 0 12px var(--accent-success);
-          animation: pulse-dot 2s infinite;
-        }
-        @keyframes pulse-dot {
-          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-          50% { transform: scale(1.2); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        .feed-items {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-        .feed-item {
-          font-family: var(--font-sans);
-          font-size: 0.82rem;
-          color: #e2e8f0;
-          border-left: 2px solid rgba(16, 185, 129, 0.5);
-          padding-left: 12px;
-          opacity: 0;
-          animation: slideRightIn 0.8s ease-out forwards;
-          line-height: 1.4;
-        }
-        .feed-timestamp {
-          font-family: var(--font-mono);
-          font-size: 0.7rem;
-          color: #94a3b8;
-        }
-        @keyframes slideRightIn {
-          from { opacity: 0; transform: translateX(-10px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-
-        .hero__badge {
+        .gov-news-ticker__content span {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 8px 20px;
-          background: rgba(234, 179, 8, 0.08);
-          border: 1px solid rgba(234, 179, 8, 0.2);
-          border-radius: var(--radius-full);
-          color: rgba(234, 179, 8, 0.7);
-          font-size: 0.82rem;
-          font-weight: 600;
-          margin-bottom: var(--space-lg);
-        }
-        .hero__title {
-          font-size: 3rem;
-          font-weight: 900;
-          line-height: 1.1;
-          letter-spacing: -0.03em;
-          color: var(--text-primary);
-          margin-bottom: var(--space-lg);
-        }
-        .hero__title-gradient {
-          background: var(--gradient-primary);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        .hero__subtitle {
-          font-size: 1.2rem;
-          color: var(--text-secondary);
-          max-width: 680px;
-          margin: 0 auto var(--space-2xl);
-          line-height: 1.7;
-        }
-        .hero__actions {
-          display: flex;
-          gap: var(--space-md);
-          justify-content: center;
-          flex-wrap: wrap;
-          margin-bottom: var(--space-3xl);
-        }
-        .hero__stats {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: var(--space-xl);
-          flex-wrap: wrap;
-        }
-        .hero__stat {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-        }
-        .hero__stat-value {
-          font-family: var(--font-mono);
-          font-size: 1.6rem;
-          font-weight: 800;
-          color: var(--text-primary);
-        }
-        .hero__stat-label {
-          font-size: 0.82rem;
-          color: var(--text-muted);
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-        .hero__stat-divider {
-          width: 1px;
-          height: 40px;
-          background: var(--border-primary);
+          gap: 6px;
         }
 
-        /* ─── Sections ─── */
-        .section {
-          padding: var(--space-3xl) 0;
+        /* ─── Sovereign Hero ─── */
+        .gov-hero {
+          background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+          padding: var(--space-2xl) 0;
+          border-bottom: 1px solid #e2e8f0;
         }
-        .section--dark {
-          background: rgba(15, 23, 42, 0.4);
-          border-top: 1px solid var(--border-secondary);
-          border-bottom: 1px solid var(--border-secondary);
-        }
-        .section__header {
-          text-align: center;
-          margin-bottom: var(--space-2xl);
-        }
-        .section__title {
-          font-size: 2.2rem;
-          font-weight: 800;
-          color: var(--text-primary);
-          margin-bottom: var(--space-sm);
-          letter-spacing: -0.02em;
-        }
-        .section__subtitle {
-          color: var(--text-secondary);
-          font-size: 1.05rem;
-        }
-
-        /* ─── Feature Cards ─── */
-        .feature-card {
-          text-align: left;
-        }
-        .feature-card__icon {
-          width: 56px;
-          height: 56px;
-          border-radius: var(--radius-md);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: var(--space-md);
-        }
-        .feature-card__title {
-          font-size: 1.15rem;
-          font-weight: 700;
-          color: var(--text-primary);
-          margin-bottom: var(--space-sm);
-        }
-        .feature-card__desc {
-          font-size: 0.92rem;
-          color: var(--text-secondary);
-          line-height: 1.6;
-        }
-
-        /* ─── Timeline ─── */
-        .timeline {
+        .gov-hero__inner {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: var(--space-lg);
+          grid-template-columns: 1.35fr 0.85fr;
+          gap: var(--space-2xl);
+          align-items: center;
         }
-        .timeline__item {
-          text-align: center;
-          padding: var(--space-xl);
-          background: var(--bg-card);
-          border: 1px solid var(--border-primary);
-          border-radius: var(--radius-lg);
-          transition: all var(--transition-normal);
+        .gov-hero__sub-title {
+          font-family: 'Noto Sans Devanagari', sans-serif;
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #ff9933;
         }
-        .timeline__item:hover {
-          border-color: var(--accent-primary);
-          box-shadow: var(--shadow-glow);
-          transform: translateY(-4px);
+        .gov-hero__org-title {
+          font-family: var(--font-heading);
+          font-size: 1.4rem;
+          font-weight: 900;
+          color: #1e3a8a;
+          letter-spacing: 0.04em;
+          margin: 0;
         }
-        .timeline__number {
-          font-family: var(--font-mono);
+        .gov-hero__portal-tag {
+          font-size: 0.76rem;
+          color: #64748b;
+          font-weight: 600;
+        }
+        .gov-hero__main-heading {
+          font-family: var(--font-heading);
           font-size: 2.5rem;
           font-weight: 900;
-          background: var(--gradient-primary);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: var(--space-md);
+          line-height: 1.2;
+          color: #0f172a;
+          margin: var(--space-md) 0;
+          letter-spacing: -0.02em;
         }
-        .timeline__title {
-          font-size: 1.15rem;
+        .gov-hero__highlight {
+          color: #2563eb;
+        }
+        .gov-hero__description {
+          font-size: 1.02rem;
+          color: #475569;
+          line-height: 1.65;
+          margin-bottom: var(--space-xl);
+          max-width: 680px;
+        }
+        .gov-hero__cta-group {
+          display: flex;
+          gap: var(--space-md);
+          flex-wrap: wrap;
+          margin-bottom: var(--space-xl);
+        }
+        .gov-hero__badges-row {
+          display: flex;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        .gov-cred-badge {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8rem;
+          color: #334155;
+          font-weight: 600;
+          background: #f1f5f9;
+          padding: 5px 12px;
+          border-radius: var(--radius-full);
+          border: 1px solid var(--border-primary);
+        }
+
+        /* ─── Hero Quick Card ─── */
+        .gov-hero__quick-card {
+          background: #ffffff;
+          border: 2px solid #1e3a8a;
+          border-radius: var(--radius-lg);
+          box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+          overflow: hidden;
+        }
+        .gov-quick-card__header {
+          background: #1e3a8a;
+          color: #ffffff;
+          padding: 12px 18px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .gov-quick-card__title {
           font-weight: 700;
-          color: var(--text-primary);
+          font-size: 0.9rem;
+          color: #ffffff;
+        }
+        .gov-quick-card__body {
+          padding: var(--space-lg);
+          background: #ffffff;
+        }
+
+        /* ─── Voter Service Cards ─── */
+        .gov-service-card {
+          padding: var(--space-lg);
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          cursor: pointer;
+          border-top: 3px solid #1e3a8a;
+          background: #ffffff;
+        }
+        .gov-service-card__icon {
+          width: 48px;
+          height: 48px;
+          border-radius: var(--radius-md);
+          background: rgba(37, 99, 235, 0.08);
+          color: #1d4ed8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           margin-bottom: var(--space-sm);
         }
-        .timeline__desc {
-          font-size: 0.88rem;
-          color: var(--text-secondary);
-          line-height: 1.5;
-        }
-
-        /* ─── CTA ─── */
-        .cta-card {
-          padding: var(--space-3xl);
-          text-align: center;
-          background: var(--gradient-card);
-        }
-        .cta-card__title {
-          font-size: 2rem;
+        .gov-service-card__title {
+          font-size: 1.05rem;
           font-weight: 800;
-          color: var(--text-primary);
+          color: #0f172a;
+          margin-bottom: 2px;
+        }
+        .gov-service-card__title-hi {
+          font-family: 'Noto Sans Devanagari', sans-serif;
+          font-size: 0.78rem;
+          color: #64748b;
+          margin-bottom: var(--space-xs);
+        }
+        .gov-service-card__desc {
+          font-size: 0.85rem;
+          color: #475569;
+          line-height: 1.5;
+          flex: 1;
           margin-bottom: var(--space-md);
         }
-        .cta-card__subtitle {
-          font-size: 1.05rem;
-          color: var(--text-secondary);
-          max-width: 540px;
-          margin: 0 auto;
-          line-height: 1.6;
+        .gov-service-card__link {
+          font-size: 0.84rem;
+          font-weight: 700;
+          color: #2563eb;
         }
 
-        @media (max-width: 768px) {
-          .hero__title { font-size: 2rem; }
-          .hero__brand-hindi { font-size: 2.5rem; }
-          .hero__brand-english { font-size: 0.75rem; letter-spacing: 0.25em; }
-          .hero__subtitle { font-size: 1rem; }
-          .timeline { grid-template-columns: repeat(2, 1fr); }
-          .hero__stats { gap: var(--space-md); }
-          .hero__stat-divider { display: none; }
+        /* ─── Forms Cards ─── */
+        .gov-form-card {
+          padding: var(--space-lg);
+          display: flex;
+          flex-direction: column;
+          background: #ffffff;
+          border: 1px solid var(--border-primary);
         }
-        @media (max-width: 480px) {
-          .timeline { grid-template-columns: 1fr; }
-          .hero__title { font-size: 1.7rem; }
-          .hero__brand-hindi { font-size: 2rem; }
+        .gov-form-card__num {
+          font-family: var(--font-display);
+          font-size: 1.2rem;
+          font-weight: 900;
+        }
+        .gov-form-card__title {
+          font-size: 1rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: 2px;
+        }
+        .gov-form-card__title-hi {
+          font-family: 'Noto Sans Devanagari', sans-serif;
+          font-size: 0.78rem;
+          color: #64748b;
+          margin-bottom: var(--space-xs);
+        }
+        .gov-form-card__desc {
+          font-size: 0.84rem;
+          color: #475569;
+          line-height: 1.5;
+          flex: 1;
+        }
+
+        /* ─── SVEEP Banner ─── */
+        .gov-sveep-banner {
+          background: linear-gradient(135deg, rgba(255, 153, 51, 0.08) 0%, rgba(255, 255, 255, 0.95) 50%, rgba(19, 136, 8, 0.08) 100%);
+          border: 2px solid #cbd5e1;
+          padding: var(--space-2xl);
+        }
+
+        /* ─── External Welfare Card ─── */
+        .gov-external-card {
+          border-top: 3px solid #0284c7;
+          display: flex;
+          flex-direction: column;
+          cursor: pointer;
+          background: #ffffff;
+          padding: var(--space-lg);
+        }
+        .gov-external-card__ministry {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #0284c7;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          margin-bottom: var(--space-xs);
+        }
+        .gov-external-card__title {
+          font-size: 1.02rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: var(--space-xs);
+        }
+        .gov-external-card__desc {
+          font-size: 0.85rem;
+          color: #475569;
+          line-height: 1.5;
+          flex: 1;
+          margin-bottom: var(--space-md);
+        }
+        .gov-external-card__link {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.84rem;
+          font-weight: 700;
+          color: #0284c7;
+        }
+
+        @media (max-width: 992px) {
+          .gov-hero__inner { grid-template-columns: 1fr; }
+          .gov-hero__main-heading { font-size: 2.1rem; }
         }
       `}</style>
     </div>

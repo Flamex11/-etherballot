@@ -1,5 +1,6 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import * as faceapi from 'face-api.js';
+import { HiOutlineCamera, HiOutlineCheckCircle, HiOutlineSparkles, HiOutlineLightBulb } from 'react-icons/hi';
 
 const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
   const videoRef = useRef(null);
@@ -8,19 +9,20 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
   const intervalRef = useRef(null);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingMsg, setLoadingMsg] = useState('Loading face detection models...');
+  const [loadingMsg, setLoadingMsg] = useState('Initializing AI face detection models...');
   const [faceDetected, setFaceDetected] = useState(false);
   const [livenessChecked, setLivenessChecked] = useState(false);
   const [captureReady, setCaptureReady] = useState(false);
   const [blinkCount, setBlinkCount] = useState(0);
-  const [statusMsg, setStatusMsg] = useState('Initializing camera...');
+  const [statusMsg, setStatusMsg] = useState('Position your face inside the scanner frame');
   const [eyeHistory, setEyeHistory] = useState([]);
+  const [isProcessingCapture, setIsProcessingCapture] = useState(false);
 
   // Load face-api models
   useEffect(() => {
     const loadModels = async () => {
       try {
-        setLoadingMsg('Loading face detection models...');
+        setLoadingMsg('Loading biometric neural networks (WebGL)...');
         const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';
         
         await Promise.all([
@@ -30,13 +32,13 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
           faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
         ]);
         
-        setLoadingMsg('Starting camera...');
+        setLoadingMsg('Requesting camera sensor access...');
         await startCamera();
         setIsLoading(false);
-        setStatusMsg('Position your face within the guide');
+        setStatusMsg('Align your face within the holographic frame');
       } catch (err) {
         console.error('Model loading error:', err);
-        setLoadingMsg('Failed to load face detection. Please refresh.');
+        setLoadingMsg('Failed to initialize AI face models. Please refresh.');
         onError?.('Failed to load face detection models');
       }
     };
@@ -63,7 +65,7 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
       }
     } catch (err) {
       console.error('Camera error:', err);
-      setStatusMsg('Camera access denied. Please allow camera permissions.');
+      setStatusMsg('Camera access denied. Please grant webcam permissions.');
       onError?.('Camera access denied');
     }
   };
@@ -90,7 +92,6 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
         .withFaceLandmarks()
         .withFaceDescriptor();
 
-      // Draw detection overlay
       if (canvasRef.current && videoRef.current) {
         const displaySize = {
           width: videoRef.current.videoWidth,
@@ -106,10 +107,9 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
           
           // Draw face outline
           const resizedDetection = faceapi.resizeResults(detection, displaySize);
-          // Draw landmarks for visual feedback
           faceapi.draw.drawFaceLandmarks(canvasRef.current, resizedDetection);
 
-          // Liveness detection: check eye aspect ratio for blinks
+          // Liveness detection: eye aspect ratio
           const landmarks = detection.landmarks;
           const leftEye = landmarks.getLeftEye();
           const rightEye = landmarks.getRightEye();
@@ -118,47 +118,42 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
           const rightEAR = getEyeAspectRatio(rightEye);
           const avgEAR = (leftEAR + rightEAR) / 2;
 
-          // Track eye state for blink detection or sustained tracking
           setEyeHistory(prev => {
             const newHistory = [...prev, avgEAR].slice(-15);
             
             if (newHistory.length >= 3) {
               const recent = newHistory.slice(-3);
-              // Relative drop in Eye Aspect Ratio is much more reliable across different face shapes/glasses
               const isBlink = (recent[0] - recent[1] > 0.02) && (recent[2] - recent[1] > 0.01);
               
-              // Liveness passes if they blink OR if we successfully track the face for 1.5 seconds straight (15 frames)
               if (isBlink || newHistory.length >= 15) {
                 setBlinkCount(1);
                 setLivenessChecked(true);
                 setCaptureReady(true);
-                setStatusMsg('✅ Liveness verified! Click capture.');
+                setStatusMsg('✅ Biometric liveness verified! Click to capture.');
               }
             }
             return newHistory;
           });
 
           if (!livenessChecked) {
-            setStatusMsg(`Face detected! Please blink naturally (${blinkCount}/1)`);
+            setStatusMsg(`Face detected. Please blink naturally to verify liveness (${blinkCount}/1)`);
           }
         } else {
           setFaceDetected(false);
           if (!livenessChecked) {
-            setStatusMsg('No face detected. Position your face in the guide.');
+            setStatusMsg('Looking for face... Ensure adequate lighting.');
           }
         }
       }
     };
 
-    intervalRef.current = setInterval(detectFace, 100); // 10fps to catch fast blinks
+    intervalRef.current = setInterval(detectFace, 100);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isLoading, livenessChecked, blinkCount]);
 
-  // Eye Aspect Ratio calculation for blink detection
   const getEyeAspectRatio = (eye) => {
-    // eye points: 0-5 (6 points)
     const vertical1 = distance(eye[1], eye[5]);
     const vertical2 = distance(eye[2], eye[4]);
     const horizontal = distance(eye[0], eye[3]);
@@ -170,9 +165,10 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
   };
 
   const handleCapture = async () => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || isProcessingCapture) return;
 
-    setStatusMsg('Capturing face data...');
+    setIsProcessingCapture(true);
+    setStatusMsg('Extracting 128-dimensional facial embeddings...');
 
     try {
       const detection = await faceapi
@@ -184,46 +180,48 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
         .withFaceDescriptor();
 
       if (!detection) {
-        setStatusMsg('No face detected during capture. Please try again.');
+        setStatusMsg('No clear face detected during capture. Please hold steady.');
+        setIsProcessingCapture(false);
         return;
       }
 
-      // Get 128-dimensional face descriptor
       const descriptor = Array.from(detection.descriptor);
       
       stopCamera();
       if (intervalRef.current) clearInterval(intervalRef.current);
       
-      setStatusMsg('✅ Face captured successfully!');
+      setStatusMsg('✅ Biometric vector generated successfully!');
       onCapture?.(descriptor);
     } catch (err) {
       console.error('Capture error:', err);
-      setStatusMsg('Capture failed. Please try again.');
+      setStatusMsg('Biometric capture error. Please retry.');
+      setIsProcessingCapture(false);
       onError?.('Face capture failed');
     }
   };
 
-  // Skip liveness for faster testing in development
   const handleSkipLiveness = () => {
     setLivenessChecked(true);
     setCaptureReady(true);
-    setStatusMsg('Liveness skipped (dev mode). Click capture.');
+    setStatusMsg('Liveness bypassed (Demo mode). Ready to capture.');
   };
 
   return (
     <div className="face-capture">
-      <div className="webcam-container">
+      <div className="scanner-frame">
         {isLoading && (
-          <div className="webcam-loading">
+          <div className="scanner-loading">
             <div className="spinner" />
-            <p>{loadingMsg}</p>
+            <p className="scanner-loading__text">{loadingMsg}</p>
           </div>
         )}
+
         <video
           ref={videoRef}
           autoPlay
           muted
           playsInline
+          className="scanner-video"
           onLoadedMetadata={() => {
             if (canvasRef.current && videoRef.current) {
               canvasRef.current.width = videoRef.current.videoWidth;
@@ -231,52 +229,98 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
             }
           }}
         />
-        <canvas ref={canvasRef} />
-        <div className="webcam-overlay">
-          <div className={`face-guide ${faceDetected ? 'detected' : ''}`} />
+        <canvas ref={canvasRef} className="scanner-canvas" />
+
+        {/* Futuristic Laser Scanner Overlay */}
+        <div className="scanner-overlay">
+          <div className={`cyber-reticle ${faceDetected ? 'cyber-reticle--detected' : ''}`}>
+            <span className="reticle-corner reticle-corner--tl" />
+            <span className="reticle-corner reticle-corner--tr" />
+            <span className="reticle-corner reticle-corner--bl" />
+            <span className="reticle-corner reticle-corner--br" />
+            
+            {/* Animated Laser Beam */}
+            <div className="scanner-laser" />
+          </div>
         </div>
-        <div className={`webcam-status ${faceDetected ? 'badge--success' : 'badge--warning'}`}>
-          {statusMsg}
+
+        {/* Live Floating Status */}
+        <div className={`scanner-status ${faceDetected ? 'scanner-status--active' : 'scanner-status--warning'}`}>
+          <span className="status-dot"></span>
+          <span>{statusMsg}</span>
         </div>
       </div>
 
-      <div className="face-capture__controls">
-        <div className="face-capture__indicators">
-          <div className={`face-capture__check ${faceDetected ? 'active' : ''}`}>
-            {faceDetected ? '✅' : '⬜'} Face Detected
-          </div>
-          <div className={`face-capture__check ${livenessChecked ? 'active' : ''}`}>
-            {livenessChecked ? '✅' : '⬜'} Liveness Check ({blinkCount}/1 blinks)
-          </div>
+      {/* Liveness Progress Indicators */}
+      <div className="scanner-indicators">
+        <div className={`indicator-pill ${faceDetected ? 'indicator-pill--success' : ''}`}>
+          <HiOutlineCheckCircle />
+          <span>Face Alignment</span>
         </div>
+        <div className={`indicator-pill ${livenessChecked ? 'indicator-pill--success' : ''}`}>
+          <HiOutlineSparkles />
+          <span>Liveness & Blink ({blinkCount}/1)</span>
+        </div>
+      </div>
 
-        <div className="flex gap-md mt-md">
+      {/* Action Controls */}
+      <div className="scanner-controls">
+        <button
+          className="btn btn-primary btn-lg btn-block"
+          onClick={handleCapture}
+          disabled={(!captureReady && !livenessChecked) || isProcessingCapture}
+        >
+          <HiOutlineCamera size={20} />
+          {isProcessingCapture ? 'Processing Biometrics...' : (mode === 'register' ? 'Capture Face Descriptor' : 'Verify Identity')}
+        </button>
+
+        {!livenessChecked && (
           <button
-            className="btn btn-primary btn-lg btn-block"
-            onClick={handleCapture}
-            disabled={!captureReady && !livenessChecked}
+            className="btn btn-ghost btn-sm"
+            onClick={handleSkipLiveness}
+            title="Fast-forward liveness for demonstration"
           >
-            📸 {mode === 'register' ? 'Capture Face' : 'Verify Face'}
+            ⚡ Fast-Forward Liveness
           </button>
-          {!livenessChecked && (
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={handleSkipLiveness}
-              title="Skip for testing"
-            >
-              Skip ⚡
-            </button>
-          )}
-        </div>
+        )}
+      </div>
+
+      <div className="scanner-tip">
+        <HiOutlineLightBulb style={{ color: '#fbbf24', flexShrink: 0 }} />
+        <span>Tips: Ensure good lighting, remove heavy sunglasses, and face the camera directly.</span>
       </div>
 
       <style>{`
         .face-capture {
           display: flex;
           flex-direction: column;
-          gap: var(--space-lg);
+          gap: var(--space-md);
         }
-        .webcam-loading {
+        .scanner-frame {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 4/3;
+          background: #f1f5f9;
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+          border: 2px solid rgba(37, 99, 235, 0.25);
+          box-shadow: var(--shadow-md);
+        }
+        .scanner-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transform: scaleX(-1);
+        }
+        .scanner-canvas {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          transform: scaleX(-1);
+          pointer-events: none;
+        }
+        .scanner-loading {
           position: absolute;
           inset: 0;
           display: flex;
@@ -284,28 +328,122 @@ const FaceCapture = ({ onCapture, onError, mode = 'register' }) => {
           align-items: center;
           justify-content: center;
           gap: var(--space-md);
-          background: var(--bg-secondary);
+          background: #ffffff;
           z-index: 10;
-          color: var(--text-secondary);
+          color: var(--text-primary);
+          padding: var(--space-lg);
+          text-align: center;
+        }
+        .scanner-loading__text {
           font-size: 0.9rem;
+          color: var(--text-secondary);
         }
-        .face-capture__controls {
+        .scanner-overlay {
+          position: absolute;
+          inset: 0;
           display: flex;
-          flex-direction: column;
-          gap: var(--space-md);
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
         }
-        .face-capture__indicators {
+        .cyber-reticle {
+          position: relative;
+          width: 65%;
+          height: 75%;
+          border: 1px dashed rgba(15, 23, 42, 0.2);
+          border-radius: var(--radius-md);
+          transition: all var(--transition-normal);
+        }
+        .cyber-reticle--detected {
+          border-color: rgba(5, 150, 105, 0.6);
+          box-shadow: inset 0 0 20px rgba(5, 150, 105, 0.1);
+        }
+        .reticle-corner {
+          position: absolute;
+          width: 18px;
+          height: 18px;
+          border-color: #2563eb;
+          border-style: solid;
+        }
+        .cyber-reticle--detected .reticle-corner {
+          border-color: #059669;
+        }
+        .reticle-corner--tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; }
+        .reticle-corner--tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; }
+        .reticle-corner--bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; }
+        .reticle-corner--br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; }
+        
+        .scanner-laser {
+          position: absolute;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, #2563eb, #0284c7, transparent);
+          box-shadow: 0 0 8px #2563eb;
+          animation: scanBeam 2.5s ease-in-out infinite;
+        }
+        .cyber-reticle--detected .scanner-laser {
+          background: linear-gradient(90deg, transparent, #059669, #10b981, transparent);
+          box-shadow: 0 0 8px #059669;
+        }
+        .scanner-status {
+          position: absolute;
+          bottom: 12px;
+          left: 12px;
+          right: 12px;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          border: 1px solid var(--border-primary);
+          padding: 8px 14px;
+          border-radius: var(--radius-sm);
+          font-size: 0.82rem;
           display: flex;
-          gap: var(--space-lg);
+          align-items: center;
+          gap: 8px;
+          color: var(--text-primary);
+          box-shadow: var(--shadow-sm);
+        }
+        .scanner-status--active {
+          border-color: rgba(5, 150, 105, 0.35);
+          color: #047857;
+        }
+        .scanner-indicators {
+          display: flex;
+          gap: 12px;
           justify-content: center;
         }
-        .face-capture__check {
-          font-size: 0.88rem;
-          color: var(--text-muted);
-          transition: color var(--transition-fast);
+        .indicator-pill {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 14px;
+          background: #ffffff;
+          border: 1px solid var(--border-primary);
+          border-radius: var(--radius-full);
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          box-shadow: var(--shadow-sm);
+          transition: all var(--transition-fast);
         }
-        .face-capture__check.active {
-          color: var(--accent-success);
+        .indicator-pill--success {
+          background: rgba(5, 150, 105, 0.08);
+          border-color: rgba(5, 150, 105, 0.3);
+          color: #047857;
+        }
+        .scanner-controls {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+        .scanner-tip {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.78rem;
+          color: var(--text-muted);
+          padding: 8px 12px;
+          background: rgba(15, 23, 42, 0.03);
+          border-radius: var(--radius-sm);
         }
       `}</style>
     </div>

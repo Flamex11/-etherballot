@@ -140,4 +140,15 @@ export const votingAPI = {
     api.post('/voting/verify', { voteHash })
 };
 
+// ═══════════════════════════════════════════
+//  VOTER SEARCH / ELECTORAL ROLL API
+// ═══════════════════════════════════════════
+
+export const voterAPI = {
+  searchElectoralRoll: (params) =>
+    api.get('/voters/search', { params }),
+  trackApplication: (refId) =>
+    api.get(`/voters/track/${refId}`)
+};
+
 export default api;

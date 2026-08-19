@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { votingAPI, electionAPI } from '../services/api';
+import { votingAPI } from '../services/api';
 import toast from 'react-hot-toast';
-import { HiOutlineCheckCircle } from 'react-icons/hi';
+import { 
+  HiOutlineCheckCircle, 
+  HiOutlineShieldCheck, 
+  HiOutlineClipboardCopy, 
+  HiOutlineCube,
+  HiOutlineArrowLeft,
+  HiOutlineExclamation
+} from 'react-icons/hi';
 
 const Voting = () => {
   const { user } = useAuth();
@@ -13,6 +20,7 @@ const Voting = () => {
   const [voting, setVoting] = useState(false);
   const [voteReceipt, setVoteReceipt] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     loadElections();
@@ -23,7 +31,7 @@ const Voting = () => {
       const res = await votingAPI.getEligibleElections();
       setElections(res.data.elections);
     } catch (err) {
-      toast.error('Failed to load elections');
+      toast.error('Failed to load eligible elections');
     }
     setLoading(false);
   };
@@ -33,63 +41,89 @@ const Voting = () => {
     setVoting(true);
     try {
       const res = await votingAPI.castVote(selectedElection._id, selectedCandidate);
-      toast.success('Vote cast successfully! 🎉');
+      toast.success('Vote broadcast to smart contract! 🎉');
       setVoteReceipt(res.data.receipt);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to cast vote');
+      toast.error(err.response?.data?.message || 'Failed to record vote');
     }
     setVoting(false);
     setShowConfirm(false);
+  };
+
+  const handleCopyHash = () => {
+    if (!voteReceipt?.voteHash) return;
+    navigator.clipboard.writeText(voteReceipt.voteHash);
+    setCopied(true);
+    toast.success('Transaction hash copied to clipboard!');
+    setTimeout(() => setCopied(false), 3000);
   };
 
   if (loading) {
     return (
       <div className="page-container text-center" style={{ paddingTop: '20vh' }}>
         <div className="spinner" style={{ margin: '0 auto' }} />
-        <p className="loading-text mt-md">Loading elections...</p>
+        <p className="loading-text mt-md">Synchronizing smart contract ballots...</p>
       </div>
     );
   }
 
-  // Vote receipt view
+  // ═══ VOTE RECEIPT VIEW ═══
   if (voteReceipt) {
     return (
-      <div className="page-container" style={{ maxWidth: 560, margin: '0 auto' }}>
+      <div className="page-container" style={{ maxWidth: 580, margin: '0 auto' }}>
         <div className="vote-success glass-card glass-card--no-hover animate-scale-in" style={{ marginTop: 'var(--space-2xl)' }}>
           <div className="vote-success__icon">✓</div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: 'var(--space-sm)' }}>
-            Vote Recorded!
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-xl)' }}>
-            Your vote has been securely recorded on the blockchain.
+          
+          <div className="badge badge--success mb-sm">
+            <HiOutlineShieldCheck /> Confirmed on Blockchain
+          </div>
+
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: 4 }}>
+            Ballot Sealed & Recorded
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-xl)', fontSize: '0.92rem' }}>
+            Your encrypted vote has been validated and permanently written to the smart contract ledger.
           </p>
           
-          <div style={{ textAlign: 'left', marginBottom: 'var(--space-xl)' }}>
-            <div className="flex justify-between" style={{ padding: '10px 0', borderBottom: '1px solid var(--border-secondary)' }}>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>Election</span>
-              <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>{voteReceipt.electionName}</span>
+          <div style={{ textAlign: 'left', marginBottom: 'var(--space-xl)', background: 'rgba(255, 255, 255, 0.02)', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-secondary)' }}>
+            <div className="flex justify-between items-center" style={{ padding: '8px 0', borderBottom: '1px solid var(--border-secondary)' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>Election</span>
+              <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#f8fafc' }}>{voteReceipt.electionName}</span>
             </div>
-            <div className="flex justify-between" style={{ padding: '10px 0', borderBottom: '1px solid var(--border-secondary)' }}>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>Status</span>
-              <span className="badge badge--success">{voteReceipt.status}</span>
+            <div className="flex justify-between items-center" style={{ padding: '8px 0', borderBottom: '1px solid var(--border-secondary)' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>Consensus Status</span>
+              <span className="badge badge--success">Confirmed</span>
             </div>
-            <div className="flex justify-between" style={{ padding: '10px 0', borderBottom: '1px solid var(--border-secondary)' }}>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>Timestamp</span>
-              <span style={{ fontWeight: 500, fontSize: '0.88rem' }}>
+            <div className="flex justify-between items-center" style={{ padding: '8px 0' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>Timestamp (UTC)</span>
+              <span style={{ fontWeight: 500, fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
                 {new Date(voteReceipt.timestamp).toLocaleString()}
               </span>
             </div>
           </div>
 
-          <div style={{ marginBottom: 'var(--space-xl)' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: 'var(--space-sm)' }}>
-              Transaction Hash (Save for verification):
-            </p>
+          <div style={{ marginBottom: 'var(--space-xl)', textAlign: 'left' }}>
+            <div className="flex justify-between items-center mb-xs">
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 600 }}>
+                Cryptographic Vote Hash:
+              </span>
+              <button 
+                onClick={handleCopyHash} 
+                className="btn btn-ghost btn-sm"
+                style={{ padding: '2px 8px', fontSize: '0.75rem' }}
+              >
+                <HiOutlineClipboardCopy size={14} />
+                {copied ? 'Copied!' : 'Copy Hash'}
+              </button>
+            </div>
             <div className="vote-hash">{voteReceipt.voteHash}</div>
           </div>
 
-          <button className="btn btn-primary btn-block" onClick={() => { setVoteReceipt(null); setSelectedElection(null); setSelectedCandidate(null); loadElections(); }}>
-            ← Back to Elections
+          <button 
+            className="btn btn-primary btn-lg btn-block" 
+            onClick={() => { setVoteReceipt(null); setSelectedElection(null); setSelectedCandidate(null); loadElections(); }}
+          >
+            ← Return to Election Directory
           </button>
         </div>
       </div>
@@ -99,81 +133,93 @@ const Voting = () => {
   return (
     <div className="page-container">
       <div className="page-header" style={{ marginTop: 'var(--space-xl)' }}>
+        <div className="badge badge--primary mb-sm">Official Electronic Ballot</div>
         <h1 className="page-title">Cast Your Vote</h1>
         <p className="page-subtitle">
-          Welcome, {user?.name}! Select an election and choose your candidate.
+          Authenticated voter: <strong style={{ color: '#2563eb' }}>{user?.name}</strong>. Choose an active election for your registered constituency.
         </p>
       </div>
 
       {/* No elections available */}
       {elections.length === 0 && (
-        <div className="glass-card glass-card--no-hover text-center" style={{ padding: 'var(--space-3xl)' }}>
+        <div className="glass-card glass-card--no-hover text-center" style={{ padding: 'var(--space-3xl)', maxWidth: 600, margin: '0 auto' }}>
           <p style={{ fontSize: '3rem', marginBottom: 'var(--space-md)' }}>🗳️</p>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: 'var(--space-sm)' }}>
-            No Active Elections
-          </h3>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            There are no elections available for your region right now. Check back later.
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: 'var(--space-xs)' }}>
+            No Active Elections Found
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+            There are currently no active ballots open for your jurisdiction. Please verify back when scheduled voting begins.
           </p>
         </div>
       )}
 
-      {/* Election Selection */}
+      {/* Election Selection List */}
       {!selectedElection && elections.length > 0 && (
         <div className="grid grid-2 stagger-children">
-          {elections.map((election, i) => (
+          {elections.map((election) => (
             <div
               key={election._id}
-              className={`glass-card animate-fade-in ${election.hasVoted ? 'glass-card--no-hover' : ''}`}
+              className={`glass-card ${election.hasVoted ? 'glass-card--no-hover' : ''}`}
               onClick={() => !election.hasVoted && setSelectedElection(election)}
-              style={{ cursor: election.hasVoted ? 'default' : 'pointer', opacity: election.hasVoted ? 0.7 : 1 }}
+              style={{ cursor: election.hasVoted ? 'default' : 'pointer', opacity: election.hasVoted ? 0.75 : 1 }}
             >
               <div className="flex justify-between items-center mb-md">
                 <span className={`badge ${election.status === 'active' ? 'badge--success' : 'badge--info'}`}>
-                  {election.status}
+                  ● {election.status}
                 </span>
-                <span className="badge badge--primary">{election.type}</span>
+                <span className="badge badge--primary">{election.type.toUpperCase()}</span>
               </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 'var(--space-sm)' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-xs)' }}>
                 {election.name}
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: 'var(--space-md)' }}>
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: 'var(--space-md)', lineHeight: 1.5 }}>
                 {election.description}
               </p>
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                {election.candidates?.length} candidates · {election.type !== 'national' && `${election.state || ''} ${election.district || ''}`}
+              
+              <div className="flex justify-between items-center pt-md" style={{ borderTop: '1px solid var(--border-secondary)', fontSize: '0.84rem', color: 'var(--text-muted)' }}>
+                <span>{election.candidates?.length || 0} Candidates Contesting</span>
+                <span>{election.type !== 'national' ? `${election.state || ''} ${election.district || ''}` : 'National'}</span>
               </div>
-              {election.hasVoted && (
-                <div className="badge badge--success mt-md" style={{ display: 'inline-flex' }}>
-                  <HiOutlineCheckCircle /> Already Voted
+
+              {election.hasVoted ? (
+                <div className="badge badge--success mt-md" style={{ width: '100%', justifyContent: 'center', padding: '8px' }}>
+                  <HiOutlineCheckCircle /> You have already cast your ballot
                 </div>
+              ) : (
+                <button className="btn btn-secondary btn-sm btn-block mt-md">
+                  Select Ballot →
+                </button>
               )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Ballot */}
+      {/* Ballot & Candidate Selection */}
       {selectedElection && (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in" style={{ maxWidth: 840, margin: '0 auto' }}>
           <button
             className="btn btn-ghost mb-lg"
             onClick={() => { setSelectedElection(null); setSelectedCandidate(null); }}
           >
-            ← Back to Elections
+            <HiOutlineArrowLeft /> Back to Ballot Directory
           </button>
           
-          <div className="glass-card glass-card--no-hover mb-lg">
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 'var(--space-xs)' }}>
+          <div className="glass-card glass-card--no-hover mb-xl">
+            <div className="flex justify-between items-center mb-xs">
+              <span className="badge badge--primary">{selectedElection.type.toUpperCase()} ELECTION</span>
+              <span className="badge badge--success">● Active Ballot</span>
+            </div>
+            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)', margin: '8px 0 4px' }}>
               {selectedElection.name}
             </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
               {selectedElection.description}
             </p>
           </div>
 
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 'var(--space-lg)', color: 'var(--text-secondary)' }}>
-            Select your candidate:
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: 'var(--space-md)', color: 'var(--text-primary)' }}>
+            Choose Candidate:
           </h3>
 
           <div className="grid grid-3 stagger-children">
@@ -186,19 +232,24 @@ const Voting = () => {
                 <div className="candidate-avatar">
                   {candidate.name.charAt(0)}
                 </div>
-                <h3 className="candidate-name">{candidate.name}</h3>
+                <h4 className="candidate-name">{candidate.name}</h4>
                 <p className="candidate-party">{candidate.party}</p>
+                
+                <div className="mt-md" style={{ fontSize: '0.8rem', color: selectedCandidate === idx ? '#fbbf24' : 'var(--text-muted)' }}>
+                  {selectedCandidate === idx ? '● Selected Choice' : 'Click to select'}
+                </div>
               </div>
             ))}
           </div>
 
           {selectedCandidate !== null && (
-            <div className="text-center mt-xl animate-scale-in">
+            <div className="text-center mt-2xl animate-scale-in">
               <button
                 className="btn btn-success btn-lg"
                 onClick={() => setShowConfirm(true)}
+                style={{ padding: '16px 40px', fontSize: '1.1rem', fontWeight: 800 }}
               >
-                🗳️ Submit Vote for {selectedElection.candidates[selectedCandidate]?.name}
+                🗳️ Review & Submit Vote for {selectedElection.candidates[selectedCandidate]?.name}
               </button>
             </div>
           )}
@@ -207,21 +258,26 @@ const Voting = () => {
 
       {/* Confirmation Modal */}
       {showConfirm && (
-        <div className="modal-overlay">
+        <div className="modal-overlay animate-fade-in">
           <div className="modal-content animate-scale-in">
-            <h3 className="modal-title">Confirm Your Vote</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-xl)' }}>
-              You are about to vote for <strong style={{color: 'var(--text-primary)'}}>
+            <div className="badge badge--warning mb-sm">
+              <HiOutlineExclamation /> Irreversible Action
+            </div>
+            <h3 className="modal-title">Confirm Ballot Submission</h3>
+            
+            <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-lg)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+              You are about to cast your vote for <strong style={{ color: '#2563eb' }}>
                 {selectedElection.candidates[selectedCandidate]?.name}
               </strong> ({selectedElection.candidates[selectedCandidate]?.party}) in{' '}
-              <strong style={{color: 'var(--text-primary)'}}>{selectedElection.name}</strong>.
-              <br /><br />
-              <span style={{ color: 'var(--accent-warning)', fontSize: '0.88rem' }}>
-                ⚠️ This action cannot be undone. Your vote will be permanently recorded on the blockchain.
-              </span>
+              <strong style={{ color: '#0f172a' }}>{selectedElection.name}</strong>.
             </p>
+
+            <div style={{ background: 'rgba(220, 38, 38, 0.08)', border: '1px solid rgba(220, 38, 38, 0.25)', padding: '12px', borderRadius: 'var(--radius-sm)', marginBottom: 'var(--space-xl)', fontSize: '0.84rem', color: '#b91c1c', fontWeight: 500 }}>
+              ⚠️ Once submitted, your vote is immutably sealed on the blockchain and cannot be retracted or altered.
+            </div>
+
             <div className="flex gap-md">
-              <button className="btn btn-ghost btn-block" onClick={() => setShowConfirm(false)}>
+              <button className="btn btn-ghost btn-block" onClick={() => setShowConfirm(false)} disabled={voting}>
                 Cancel
               </button>
               <button
@@ -229,7 +285,7 @@ const Voting = () => {
                 onClick={handleVote}
                 disabled={voting}
               >
-                {voting ? '⏳ Recording...' : '✓ Confirm Vote'}
+                {voting ? '⏳ Sealing on Ledger...' : '✓ Confirm & Broadcast Vote'}
               </button>
             </div>
           </div>
